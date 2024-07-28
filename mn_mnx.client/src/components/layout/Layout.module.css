@@ -1,0 +1,18 @@
+.basic-layout,
+.centered-layout {
+    --layout-full-height: calc(100vh - var(--header-height));
+    --layout-color: var(--color, #fff);
+    
+    padding: 2rem 2rem;
+    color: var(--layout-color);
+
+    @media (max-width: 650px) {
+        padding: .5rem 1rem;
+    }
+}
+
+.centered-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

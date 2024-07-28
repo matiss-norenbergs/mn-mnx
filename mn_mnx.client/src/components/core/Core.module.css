@@ -1,0 +1,35 @@
+.core-wrapper {
+    --core-primary: var(--primary, #6200EE);
+    --core-color: var(--color, #000);
+
+    position: relative;
+
+    .core-content {
+        margin-top: var(--header-height);
+
+        &.loading::before {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            content: " ";
+            width: 35px;
+            aspect-ratio: 1;
+            margin: auto;
+            border-radius: 50%;
+            border: .3rem solid transparent;
+            border-color: var(--core-primary) transparent var(--core-color) transparent;
+            animation: lds-dual-ring 1.2s linear infinite;
+        }
+    }
+}
+
+@keyframes lds-dual-ring {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

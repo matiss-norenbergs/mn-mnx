@@ -1,0 +1,35 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNX log</title>
+
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+
+            th, td {
+                border: 1px solid black;
+            }
+
+            td {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h3>{@UserName}</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date time</th>
+                <th>Source</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {@LogTableBody}
+        </tbody>
+    </table>
+</body>

@@ -1,0 +1,7 @@
+.mn-form {
+    --form-error: #c41f1f;
+
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;   
+}

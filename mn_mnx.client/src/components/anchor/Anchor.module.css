@@ -1,0 +1,19 @@
+.anchor-wrapper {
+    --anchor-primary: var(--primary, #6200EE);
+    --anchor-color: var(--color, #000);
+
+    display: flex;
+    gap: 1rem;
+    padding: 0 1rem;
+
+    .anchor-item {
+        font-size: 14px;
+        color: var(--anchor-color);
+        text-decoration: none;
+
+        &.active,
+        &:hover {
+            color: var(--anchor-primary);
+        }
+    }
+}

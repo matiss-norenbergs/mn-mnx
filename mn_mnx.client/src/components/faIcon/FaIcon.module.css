@@ -1,0 +1,7 @@
+.fa-icon {
+    color: inherit;
+
+    &.padded {
+        margin-right: 6px;
+    }
+}

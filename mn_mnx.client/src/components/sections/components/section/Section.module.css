@@ -1,0 +1,99 @@
+.section-wrapper {
+    --full-height: calc(100svh - var(--header-height));
+
+    padding: 0 4rem;
+
+    &.full-size {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: var(--full-height);
+    
+        .child-wrapper {
+            height: 100%;
+        }
+    }
+
+    .section-title {
+        width: 100%;
+        margin-top: 2rem;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .section-contents {
+        display: grid;
+        min-height: var(--full-height);
+        width: 100%;
+
+        &.default {
+            grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+
+            @media (max-width: 480px) {
+                grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+            }
+        }
+
+        &.small {
+            grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+
+            @media (max-width: 480px) {
+                grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+            }
+        }
+        
+        &.medium {
+            grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+        }
+
+        &.large {
+            grid-template-columns: repeat(auto-fit, minmax(28rem, 1fr));
+    
+            @media (max-width: 480px) {
+                grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+            }
+        }
+
+        &:has(> .child-wrapper:nth-child(n + 2)) {
+            .child-wrapper:first-child {
+                align-items: flex-end;
+            }
+        }
+        
+        &:has(> .child-wrapper:nth-child(n + 3)) {
+            min-height: 8rem;
+            padding: 3rem 0;
+        
+            .child-wrapper:first-child {
+                align-items: center;
+            }
+        }
+        
+        .child-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding: 2rem;
+            text-align: justify;
+
+            &.center {
+                justify-content: center;
+            }
+
+            &.shadow {
+                background: rgba(0, 0, 0, 0.2);
+            }
+
+            @media (max-width: 1080px) {
+                padding: 1rem;
+            }
+        }
+    }
+
+    @media (max-width: 650px) {
+        padding: 0 1rem;
+    }
+}

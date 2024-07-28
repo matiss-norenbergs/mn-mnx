@@ -1,0 +1,18 @@
+.post-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+
+    .post-card {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        padding: 1rem 2rem;
+        background: var(--transparent);
+    
+        .details {
+            align-self: flex-end;
+        }
+    }
+}

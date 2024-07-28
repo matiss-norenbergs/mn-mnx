@@ -1,0 +1,7 @@
+.icon-style {
+    --icon-primary: var(--primary, #6200EE);
+
+    width: 50px;
+    aspect-ratio: 1;
+    fill: var(--icon-primary);
+}

@@ -1,0 +1,10 @@
+.footer-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: var(--footer-height);
+
+    .text {
+        color: var(--color);
+    }
+}

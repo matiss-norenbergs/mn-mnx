@@ -1,0 +1,28 @@
+.sections-wrapper {
+    --section-anchor-background: var(--background, #fff);
+
+    .section-anchor {
+        position: absolute;
+        top: 0;
+        right: 1.3rem;
+        z-index: 1;
+        display: flex;
+        justify-content: flex-end;
+        width: fit-content;
+        margin-top: 3rem;
+        padding: .5rem 1rem;
+        border-radius: 0 0 20px 20px;
+        background: var(--section-anchor-background);
+        box-shadow: 1px 2px 3px -1px rgba(0, 0, 0, .5);
+
+        @media (max-width: 1000px) {
+            padding: .3rem 1rem;
+        }
+    }
+
+    @media (max-width: 650px) {
+        .section-anchor {
+            display: none;
+        }
+    }
+}

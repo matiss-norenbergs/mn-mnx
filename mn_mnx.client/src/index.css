@@ -1,0 +1,81 @@
+/* Font 1 */
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* Font 2 - Title */
+@import url('https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+128+Text&family=Libre+Barcode+39+Extended+Text&family=Major+Mono+Display&family=Sriracha&display=swap');
+
+:root {
+    --white: #fff;
+    --white-2: #eee;
+    --light-gray: #ccc;
+    --lighter-gray: #ddd;
+    --dark-gray: #181818;
+    --darker-gray: #141414;
+    --black: #000;
+
+    --font-family: "Inter Tight", sans-serif;
+    --font-family-2: "Major Mono Display", monospace;
+    --font-size: 14px;
+    --header-height: 4rem;
+    --footer-height: 0rem;
+    --view-side-padding: 2rem;
+    --border-radius: 5px;
+
+    --candy-red: #d33232;
+    --candy-red-rgb: 211, 50, 50;
+    --neon-blue: #305edf;
+    --neon-blue-rgb: 48, 94, 223;
+
+    --primary-light: var(--neon-blue);
+    --primary-rgb-light: var(--neon-blue-rgb);
+    --background-light: var(--white-2);
+    --background-2-light: var(--lighter-gray);
+    --color-light: var(--black);
+
+    --background-dark: #171717;
+    --background-2-dark: #242424;
+    --color-dark: var(--white-2);
+
+    --primary: var(--primary-light);
+    --primary-rgb: var(--primary-rgb-light);
+    --background: var(--background-light);
+    --background-2: var(--background-2-light);
+    --color: var(--color-light);
+    
+    --transparent: rgba(0, 0, 0, 0.1);
+
+    &:has(#user-theme[data-active="dark"]) {
+        /* --primary: var(--primary-dark);
+        --primary-rgb: var(--primary-rgb-dark); */
+        --background: var(--background-dark);
+        --background-2: var(--background-2-dark);
+        --color: var(--color-dark);
+    }
+
+    @media (max-width: 650px) {
+        --view-side-padding: 1rem;
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    border: none;
+    font-family: var(--font-family);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(112, 112, 112, 0.5);
+    border-radius: 15px;
+}
+
+body {
+    background: var(--background);
+}

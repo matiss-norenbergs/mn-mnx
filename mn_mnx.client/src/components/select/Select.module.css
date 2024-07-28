@@ -1,0 +1,24 @@
+.mn-select {
+    --select-font-size: var(--font-size, 14px);
+    --select-border-radius: var(--border-radius, 5px);
+    --select-primary: var(--primary, #6200EE);
+    --select-primary-rgb: var(--primary-rgb, 98, 0, 238);
+    --select-background-2: var(--background-2);
+    --select-color: var(--color, #000);
+
+    max-width: 250.31px;
+    padding: .25rem .35rem;
+    border-radius: var(--select-border-radius);
+    font-size: var(--select-font-size);
+    background: var(--select-background-2);
+    color: var(--select-color);
+    outline: 1px solid rgba(var(--select-primary-rgb), .2);
+
+    &::placeholder {
+        color: color-mix(in lab, var(--select-color), gray 70%);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--select-primary);
+    }
+}

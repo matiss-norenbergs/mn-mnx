@@ -1,0 +1,26 @@
+.mn-text-area {
+    --text-area-font-size: var(--font-size, 14px);
+    --text-area-border-radius: var(--border-radius, 5px);
+    --text-area-primary: var(--primary, #6200EE);
+    --text-area-primary-rgb: var(--primary-rgb, 98, 0, 238);
+    --text-area-background-2: var(--background-2);
+    --text-area-color: var(--color, #000);
+
+    resize: vertical;
+    max-height: 200px;
+    min-height: 4ch;
+    padding: .25rem .35rem;
+    border-radius: var(--text-area-border-radius);
+    font-size: var(--text-area-font-size);
+    background: var(--text-area-background-2);
+    color: var(--text-area-color);
+    outline: 1px solid rgba(var(--text-area-primary-rgb), .2);
+
+    &::placeholder {
+        color: color-mix(in lab, var(--text-area-color), gray 70%);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--text-area-primary);
+    }
+}

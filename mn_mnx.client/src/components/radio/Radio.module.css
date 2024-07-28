@@ -1,0 +1,14 @@
+.radio-wrapper {
+    --radio-primary: var(--primary, #6200EE);
+
+    appearance: none;
+    width: 1ch;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    outline-offset: 2px;
+    outline: 1px solid var(--radio-primary);
+
+    &:checked {
+        background: var(--radio-primary);
+    }
+}

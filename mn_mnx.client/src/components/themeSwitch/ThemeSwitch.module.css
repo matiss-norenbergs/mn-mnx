@@ -1,0 +1,21 @@
+.theme-switch {
+    --theme-switch-primary: var(--primary, #6200EE);
+    --theme-switch-primary-rgb: var(--primary-rgb, 98, 0, 238);
+    --theme-switch-background: var(--background, #fff);
+    --theme-switch-color: var(--color, #000);
+
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 1;
+    width: 2.5rem;
+    padding: .3rem;
+    border-radius: 50%;
+    color: var(--theme-switch-background);
+
+    &:hover {
+        background: rgba(0, 0, 0, .15);
+    }
+}
