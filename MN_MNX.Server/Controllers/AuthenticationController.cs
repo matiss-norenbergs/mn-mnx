@@ -20,7 +20,7 @@ namespace MN_MNX.Server.Controllers
         {
             try
             {
-                var userCollection = _userService.GetUserCollectionByEmail();
+                var userCollection = _userService.GetAllUserCollectionByEmail();
                 if (!userCollection.TryGetValue(authData.Email, out var userDetails) || userDetails.Password != UserHelper.EncryptPassword(authData.Password))
                     return BadRequest();
 

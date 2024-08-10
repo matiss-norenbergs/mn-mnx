@@ -1,15 +1,26 @@
 import PropTypes from "prop-types"
 import classNames from "classnames"
-import { useDispatch, useSelector } from "react-redux"
-import { useCallback } from "react"
-import { NavLink, useNavigate } from "react-router-dom"
 
-import Button from "../button"
-import MNIcon from "../mnIcon"
+import { useDispatch, useSelector } from "react-redux"
+import { useCallback, useRef } from "react"
+
+import {
+    Navbar,
+    NavbarBrand,
+    NavbarContent,
+    NavbarItem,
+    Link,
+    DropdownItem,
+    DropdownTrigger,
+    Dropdown,
+    DropdownMenu,
+    Avatar
+} from "@nextui-org/react"
+
 import FaIcon from "../faIcon"
-import ThemeSwitch from "../themeSwitch"
-import Heading from "../heading"
-import Dropdown from "../dropdown"
+import ModalComponent from "../modalComponent"
+
+import UserForm from "@/shared/userForm"
 
 import { logoutUser } from "@/helpers/axios/authService"
 import { removeUser } from "@/redux/features/user/userSlice"
@@ -21,26 +32,24 @@ const propTypes = {
     extraContent: PropTypes.node,
     appTitle: PropTypes.string,
     showLogo: PropTypes.bool,
-    logoutUser: PropTypes.func
-}
-const defaultProps = {
-    paths: [],
-    showLogo: true
+    logoutUser: PropTypes.func,
+    showRouteIcons: PropTypes.bool
 }
 
 const Header = ({
     paths,
-    extraContent,
     appTitle,
-    showLogo,
+    showLogo = true,
+    showRouteIcons = false
 }) => {
     const user = useSelector((state) => state.user)
-    const navigate = useNavigate()
     const dispatch = useDispatch()
 
+    const userLoginFormRef = useRef(null)
+
     const handleLogin = useCallback(() => {
-        navigate("/login")
-    }, [navigate])
+        userLoginFormRef.current?.open()
+    }, [])
 
     const handleLogout = useCallback(() => {
         logoutUser()
@@ -52,102 +61,107 @@ const Header = ({
     }, [dispatch])
 
     return (
-        <header className={styles["header-wrapper"]}>
-            <div className={styles["header-left-side"]}>
-                {showLogo && (
-                    <MNIcon className={styles["header-logo"]} />
-                )}
-                <Heading
-                    className={styles["header-app-title"]}
-                    level={1}
-                >
-                    {appTitle}
-                </Heading>
-            </div>
-            {extraContent}
-            <div className={styles["header-contents"]}>
-                {paths.length > 0 && (
-                    <nav className={styles["navigation"]}>
-                        <span className={styles["nav-menu"]}>
+        <Navbar
+            className="bg-secondary"
+            maxWidth="full"
+        >
+            {showLogo && (
+                <NavbarBrand>
+                    <p className={classNames(
+                        "font-bold text-4xl text-default",
+                        styles["app-title"]
+                    )}>
+                        {appTitle}
+                    </p>
+                </NavbarBrand>
+            )}
+            <NavbarContent>
+                {paths?.map(({ path, title, icon }) => (
+                    <NavbarItem
+                        key={path}
+                    >
+                        <Link
+                            className="text-default text-md"
+                            href={path}
+                        >
                             <FaIcon
-                                icon="bars"
-                                fixedWidth
+                                icon={icon}
+                                padded
+                                isHidden={!showRouteIcons}
                             />
-                        </span>
-                        <div className={styles["nav-paths"]}>
-                            {paths.map(({ path, title, icon }) => (
-                                <NavLink
-                                    key={path}
-                                    className={({ isActive }) => classNames({
-                                        [styles["active-link"]]: isActive
-                                    })}
-                                    to={path}
-                                >
-                                    <Button
-                                        className={styles["link-btn"]}
-                                        type="ghost"
-                                        faIcon={icon}
-                                    >
-                                        {title}
-                                    </Button>
-                                </NavLink>
-                            ))}
-                        </div>
-                    </nav>
-                )}
-                <div className={styles["header-right-side"]}>
-                    <ThemeSwitch />
-                    {Object.keys(user).length > 0 ? (
-                        <Dropdown items={[{
-                            key: 1,
-                            label: (
-                                <span>
+                            {title}
+                        </Link>
+                    </NavbarItem>
+                ))}
+            </NavbarContent>
+            <NavbarContent as="div" justify="end">
+                {Object.keys(user).length > 0 ? (
+                    <Dropdown placement="bottom-end">
+                        <DropdownTrigger>
+                            <Avatar
+                                isBordered
+                                as="button"
+                                className="transition-transform text-default"
+                                color="secondary"
+                                name={`${user.Name} ${user.Surname}`}
+                                size="sm"
+                                src=""
+                            />
+                        </DropdownTrigger>
+                        <DropdownMenu
+                            aria-label="Profile Actions"
+                            variant="flat"
+                        >
+                            <DropdownItem key="profile" className="h-14 gap-2">
+                                <p className="font-semibold">
                                     <FaIcon
-                                        icon={["far", "user"]}
-                                        fixedWidth
+                                        icon="user"
                                         padded
                                     />
                                     {`${user.Name} ${user.Surname}`}
-                                </span>
-                            )
-                        }, {
-                            key: 2,
-                            label: (
-                                <span>
+                                </p>
+                            </DropdownItem>
+                            <DropdownItem key="logout" color="danger">
+                                <Link onPress={handleLogout}>
                                     <FaIcon
                                         icon="arrow-right-from-bracket"
-                                        fixedWidth
                                         padded
                                     />
-                                    {"Logout"}
-                                </span>
-                            ),
-                            onClick: handleLogout
-                        }]}>
-                            <span className={styles["header-icon"]}>
-                                <FaIcon
-                                    icon="user"
-                                    fixedWidth
-                                />
-                            </span>
-                        </Dropdown>
-                    ) : (
-                        <span
-                            className={styles["header-icon"]}
-                            onClick={handleLogin}
+                                    Log Out
+                                </Link>
+                            </DropdownItem>
+                        </DropdownMenu>
+                    </Dropdown>
+                ) : (
+                    <NavbarItem>
+                        <Link
+                            className={classNames(
+                                "text-default text-md",
+                                styles["login-btn"]
+                            )}
+                            onPress={handleLogin}
                         >
                             <FaIcon
                                 icon="arrow-right-to-bracket"
-                                fixedWidth
+                                padded
                             />
-                        </span>
-                    )}
-                </div>
-            </div>
-        </header>
+                            Login
+                        </Link>
+                    </NavbarItem>
+                )}
+            </NavbarContent>
+            <ModalComponent
+                ref={userLoginFormRef}
+                component={<UserForm formState={1} />}
+                title="Login"
+                confirmText="Login"
+                onModalConfirm="login"
+                width={500}
+                disableEsc
+            />
+        </Navbar>
     )
 }
 Header.propTypes = propTypes
-Header.defaultProps = defaultProps
 
 export default Header

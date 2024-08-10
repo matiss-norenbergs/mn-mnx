@@ -15,9 +15,8 @@
         display: flex;
         flex-direction: column;
         padding: 2rem 1rem;
-        height: var(--admin-full-height);
+        height: 100svh;
         width: 200px;
-        background: linear-gradient(180deg, var(--admin-primary) 2%, rgba(var(--admin-primary-rgb), .75) 20%);
 
         .link-btn {
             color: var(--admin-background);

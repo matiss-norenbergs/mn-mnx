@@ -7,7 +7,26 @@ const objects = {
     post: "PostData"
 }
 
+const reactObject = {
+    user: "user",
+    post: "post"
+}
+
+const userTypes = {
+    list: "list",
+    form: "form"
+}
+
+const postTypes = {
+    list: "list",
+    form: "form"
+}
+
 export {
     apiUrl,
-    objects
+    objects,
+    reactObject,
+
+    userTypes,
+    postTypes
 }

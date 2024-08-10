@@ -1,8 +1,11 @@
 import PropTypes from "prop-types"
-import classNames from "classnames"
-import { useMemo } from "react"
 
-import styles from "./Select.module.css"
+import {
+    Select as NextSelect,
+    SelectItem as NextSelectItem
+} from "@nextui-org/react"
+
+//import styles from "./Select.module.css"
 
 const propTypes = {
     className: PropTypes.string,
@@ -12,42 +15,33 @@ const propTypes = {
             PropTypes.number
         ]).isRequired,
         value: PropTypes.string.isRequired
-    }))
-}
-const defaultProps = {
-    items: []
+    })),
+    value: PropTypes.any
 }
 
 const Select = ({
-    className,
     items,
+    value,
     ...rest
 }) => {
+    const selectedKeys = Array.isArray(value) ? value : [value]
+
     return (
-        <select
-            className={classNames(
-                styles["mn-select"],
-                className
-            )}
+        <NextSelect
+            variant="bordered"
+            labelPlacement="outside"
+            items={items}
+            selectedKeys={selectedKeys}
             {...rest}
         >
-            {useMemo(() => {
-                return items.map(({
-                    key,
-                    value
-                }) => (
-                    <option
-                        key={key}
-                        value={key}
-                    >
-                        {value}
-                    </option>
-                ))
-            }, [items])}
-        </select>
+            {({ key, value}) => (
+                <NextSelectItem key={key}>
+                    {value}
+                </NextSelectItem>
+            )}
+        </NextSelect>
     )
 }
 Select.propTypes = propTypes
-Select.defaultProps = defaultProps
 
 export default Select

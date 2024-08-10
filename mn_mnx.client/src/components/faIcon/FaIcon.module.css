@@ -4,4 +4,8 @@
     &.padded {
         margin-right: 6px;
     }
+
+    &.left {
+        margin-left: 6px;
+    }
 }

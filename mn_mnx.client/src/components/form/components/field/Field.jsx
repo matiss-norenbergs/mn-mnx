@@ -1,7 +1,9 @@
 import PropTypes from "prop-types"
+import { cloneElement } from "react"
+
 import { Field as RcField } from "rc-field-form"
 
-import styles from "./Field.module.css"
+//import styles from "./Field.module.css"
 
 const propTypes = {
     children: PropTypes.node,
@@ -9,34 +11,28 @@ const propTypes = {
     initialValue: PropTypes.any,
     rules: PropTypes.array,
     label: PropTypes.string,
-    required: PropTypes.bool,
-    errors: PropTypes.array
+    required: PropTypes.bool
 }
 const defaultProps = {}
 
 const Field = ({
     children,
     label,
-    required,
-    errors,
     ...rest
 }) => {
     return (
-        <div
-            className={styles["form-field"]}
-            aria-label={label}
-            aria-required={required}
+        <RcField
+            {...rest}
         >
-            <span
-                aria-errormessage={errors?.[0]}
-            >
-                <RcField
-                    {...rest}
-                >
-                    {children}
-                </RcField>
-            </span>
-        </div>
+            {(fieldProps, { errors }) => {
+                return cloneElement(children, {
+                    label,
+                    errorMessage: errors,
+                    isInvalid: errors.length > 0,
+                    ...fieldProps
+                })
+            }}
+        </RcField>
     )
 }
 Field.propTypes = propTypes

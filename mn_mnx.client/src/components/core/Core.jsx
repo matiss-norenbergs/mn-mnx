@@ -1,16 +1,18 @@
 import PropTypes from "prop-types"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import classNames from "classnames"
+import {
+    Routes,
+    Route
+} from "react-router-dom"
 
 import { library } from "@fortawesome/fontawesome-svg-core"
 import { far } from "@fortawesome/free-regular-svg-icons"
 import { fas } from "@fortawesome/free-solid-svg-icons"
 
-import Header from "../header"
-import Footer from "../footer"
+import { CircularProgress } from "@nextui-org/react"
 
+import Header from "../header"
 import Admin from "./components/admin"
 
 import { updateUserData } from "@/helpers/axios/authService"
@@ -21,22 +23,15 @@ import styles from "./Core.module.css"
 library.add(far, fas)
 
 const propTypes = {
-    routes: PropTypes.array,
-    hideFooter: PropTypes.bool,
-    extraHeaderContent: PropTypes.node,
     appTitle: PropTypes.string,
-    showHeaderLogo: PropTypes.bool
-}
-const defaultProps = {
-    routes: []
+    routes: PropTypes.array,
+    headerProps: PropTypes.object
 }
 
 const Core = ({
-    routes,
-    hideFooter,
-    extraHeaderContent,
     appTitle,
-    showHeaderLogo
+    routes = [],
+    headerProps
 }) => {
     const [isDataLoading, setIsDataLoading] = useState(true)
     const user = useSelector((state) => state.user)
@@ -146,35 +141,26 @@ const Core = ({
 
     return (
         <div className={styles["core-wrapper"]}>
-                <Router>
-                    <Header
-                        paths={headerPaths}
-                        extraContent={extraHeaderContent}
-                        appTitle={appTitle}
-                        showLogo={showHeaderLogo}
+            <Header
+                appTitle={appTitle}
+                paths={headerPaths}
+                {...headerProps}
+            />
+            {!isDataLoading ? (
+                <Routes>
+                    {handleRoutes}
+                </Routes>
+            ) : (
+                <div className={styles["core-loader"]}>
+                    <CircularProgress
+                        label="Loading..."
+                        color="default"
                     />
-                        <div
-                            className={classNames(
-                                styles["core-content"],
-                                {
-                                    [styles["loading"]]: isDataLoading
-                                }
-                            )}
-                        >
-                            {!isDataLoading && (
-                                <Routes>
-                                    {handleRoutes}
-                                </Routes>
-                            )}
-                            {!hideFooter && (
-                                <Footer />
-                            )}
-                        </div>
-                </Router>
+                </div>
+            )}
         </div>
     )
 }
 Core.propTypes = propTypes
-Core.defaultProps = defaultProps
 
 export default Core

@@ -1,8 +1,22 @@
 import PropTypes from "prop-types"
-import classNames from "classnames"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState
+} from "react"
 
-import SelectedRenderer from "./components/selectedRenderer"
+import {
+    Table as NextTable,
+    TableHeader,
+    TableColumn,
+    TableBody,
+    TableRow,
+    TableCell,
+    Pagination
+} from "@nextui-org/react"
+
+import YesNoIconRenderer from "./components/yesNoIconRenderer"
 
 import styles from "./Table.module.css"
 
@@ -14,64 +28,71 @@ const columnAlign = {
 
 const propTypes = {
     columns: PropTypes.arrayOf(PropTypes.shape({
-        field: PropTypes.string,
-        name: PropTypes.string,
+        field: PropTypes.string.isRequired,
+        name: PropTypes.string.isRequired,
         width: PropTypes.number,
         align: PropTypes.oneOf(Object.keys(columnAlign)),
         cellRenderer: PropTypes.string
     })),
     data: PropTypes.array,
-    rowKey: PropTypes.string,
+    uniqueKey: PropTypes.string,
     cellRenderers: PropTypes.object,
     getSelectedRows: PropTypes.func,
     toolbar: PropTypes.node,
-    allowMultiselection: PropTypes.bool
-}
-const defaultProps = {
-    columns: [],
-    data: [],
-    rowKey: "id",
-    cellRenderers: {},
-    allowMultiselection: false
+    isBulkMode: PropTypes.bool,
+    rowsPerPage: PropTypes.number
 }
 
-const getCellRenderer = (CellRenderer, cellValue, rowData) => (
-    <CellRenderer
-        value={cellValue}
-        data={rowData}
-    />
-)
+const defaultCellRenderers = {
+    yesNoRenderer: YesNoIconRenderer
+}
 
 const Table = ({
-    columns,
-    data,
-    rowKey,
-    cellRenderers,
+    columns = [],
+    data = [],
+    uniqueKey = "id",
+    cellRenderers = {},
     getSelectedRows,
     toolbar,
-    allowMultiselection
+    isBulkMode,
+    rowsPerPage = 25
 }) => {
-    const [targetKeys, setTargetKeys] = useState([])
+    const [targetKeys, setTargetKeys] = useState(new Set())
+    const [page, setPage] = useState(1);
 
-    const handleRowClick = useCallback((id) => () => {
-        setTargetKeys(prevState => {
-            const currentKeys = [...prevState]
+    const renderCell = useCallback((row, colKey) => {
+        let cellValue = row[colKey]
+        const cellRendererName = columns.find(x => x.field === colKey)?.cellRenderer
+        
+        if (!cellRendererName)
+            return cellValue
 
-            if (currentKeys.includes(id))
-                currentKeys.splice(currentKeys.indexOf(id), 1)
-            else if (!allowMultiselection)
-                return [id]
-            else
-                currentKeys.push(id)
+        const allCellRenderers = Object.assign({}, defaultCellRenderers, cellRenderers)
+        const CellRenderer = allCellRenderers[cellRendererName]
 
-            return currentKeys
-        })
-    }, [allowMultiselection])
+        return (
+            <CellRenderer
+                data={row}
+                value={cellValue}
+            />
+        )
+    }, [columns, cellRenderers])
+
+    const pages = Math.ceil(data.length / rowsPerPage)
+
+    const items = useMemo(() => {
+        const start = (page - 1) * rowsPerPage
+        const end = start + rowsPerPage
+
+        return data.slice(start, end)
+    }, [page, data, rowsPerPage])
 
     useEffect(() => {
+        const keys = [...targetKeys]
+        
         if (getSelectedRows)
-            getSelectedRows(data.filter(row => targetKeys.includes(row[rowKey])))
-    }, [targetKeys, data, rowKey, getSelectedRows])
+            getSelectedRows(data.filter(row => keys.includes(row[uniqueKey])))
+    }, [targetKeys, data, uniqueKey, getSelectedRows])
 
     return (
         <div className={styles["table-outer-wrapper"]}>
@@ -80,82 +101,56 @@ const Table = ({
                     {toolbar}
                 </div>
             )}
-            <div className={styles["table-inner-wrapper"]}>
-                <table className={styles["table-wrapper"]}>
-                    <thead>
-                        <tr>
-                            {useMemo(() => {
-                                return columns.map(({
-                                    field,
-                                    name,
-                                    width,
-                                    align
-                                }) => (
-                                    <th
-                                        key={field}
-                                        className={styles[align]}
-                                        style={{ width }}
-                                    >
-                                        {name}
-                                    </th>
-                                ))
-                            }, [columns])}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {useMemo(() => {
-                            return data.map((row) => {
-                                const isSelected = targetKeys.includes(row[rowKey])
-
-                                return (
-                                    <tr
-                                        key={row[rowKey]}
-                                        onClick={handleRowClick(row[rowKey])}
-                                        className={classNames({
-                                            [styles["selected"]]: isSelected
-                                        })}
-                                    >
-                                        {columns.map(({
-                                            field,
-                                            name,
-                                            align,
-                                            cellRenderer
-                                        }) => (
-                                            field === "select" ? (
-                                                <td
-                                                    key={field}
-                                                    className={classNames(
-                                                        styles[columnAlign.center],
-                                                        styles["select-cell"]
-                                                    )}
-                                                >
-                                                    <SelectedRenderer selected={isSelected} />
-                                                </td>
-                                            ) : (
-                                                <td
-                                                    key={field}
-                                                    className={styles[align]}
-                                                    data-cell={name}
-                                                >
-                                                    {Object.keys(cellRenderers).includes(cellRenderer) ? (
-                                                        getCellRenderer(cellRenderers[cellRenderer], row[field], row)
-                                                    ) : (
-                                                        row[field]
-                                                    )}
-                                                </td>
-                                            )
-                                        ))}
-                                    </tr>
-                                )
-                            })
-                        }, [cellRenderers, columns, data, handleRowClick, rowKey, targetKeys])}
-                    </tbody>
-                </table>
-            </div>
+            <NextTable
+                classNames={{
+                    base: "max-h-[760px] overflow-scroll"
+                }}
+                isHeaderSticky
+                selectionMode={isBulkMode ? "multiple" : "single"}
+                selectionBehavior="toggle"
+                selectedKeys={targetKeys}
+                onSelectionChange={setTargetKeys}
+                bottomContent={
+                    <div className="flex w-full justify-center">
+                        <Pagination
+                            isCompact
+                            showControls
+                            showShadow
+                            color="secondary"
+                            page={page}
+                            total={pages}
+                            onChange={(page) => setPage(page)}
+                        />
+                    </div>
+                }
+                aria-label="Data table"
+            >
+                <TableHeader>
+                    {columns.map((column) => (
+                        <TableColumn
+                            key={column.field}
+                            width={column.width}
+                            align={column.align}
+                        >
+                            {column.name}
+                        </TableColumn>
+                    ))}
+                </TableHeader>
+                <TableBody emptyContent="No data">
+                    {items.map((item) => (
+                        <TableRow key={item[uniqueKey]}>
+                            {(columnKey) => (
+                                <TableCell>
+                                    {renderCell(item, columnKey)}
+                                </TableCell>
+                            )}
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </NextTable>
         </div>
     )
 }
 Table.propTypes = propTypes
-Table.defaultProps = defaultProps
 
 export default Table

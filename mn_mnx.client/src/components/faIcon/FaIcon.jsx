@@ -12,23 +12,29 @@ const propTypes = {
     ]),
     fixedWidth: PropTypes.bool,
     className: PropTypes.string,
-    padded: PropTypes.bool
+    padded: PropTypes.bool,
+    isHidden: PropTypes.bool
 }
-const defaultProps = {}
+//const defaultProps = {}
 
 const FaIcon = ({
     icon,
     fixedWidth,
     className,
     padded,
+    isHidden,
     ...rest
 }) => {
+    if (isHidden)
+        return
+
     return (
         <FontAwesomeIcon
             className={classNames(
                 styles["fa-icon"],
+                [styles[padded]],
                 {
-                    [styles["padded"]]: padded
+                    [styles["padded"]]: typeof padded == "boolean" && padded
                 },
                 className
             )}
@@ -39,6 +45,6 @@ const FaIcon = ({
     )
 }
 FaIcon.propTypes = propTypes
-FaIcon.defaultProps = defaultProps
+//FaIcon.defaultProps = defaultProps
 
 export default FaIcon

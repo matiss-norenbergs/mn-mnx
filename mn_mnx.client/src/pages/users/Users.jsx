@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import axios from "axios"
 
-import Layout from '@/components/layout'
+import {
+    Button,
+    ButtonGroup,
+    Spacer
+} from "@nextui-org/react"
+
 import Table from "@/components/table"
-import Button from "@/components/button"
 import ModalComponent from "@/components/modalComponent"
-import Heading from "@/components/heading"
+import FaIcon from "@/components/faIcon"
 
 import UserForm from "@/shared/userForm"
 import RoleRenderer from "./components/RoleRenderer"
@@ -34,16 +37,21 @@ const columns = [
         width: 170
     },
     {
-        field: "createdAt",
-        name: "Created at",
-        width: 200,
-        align: "center"
+        field: "birthday",
+        name: "Birthday",
+        width: 200
     },
     {
         field: "role",
         name: "Role",
         width: 100,
         cellRenderer: "roleRenderer"
+    },
+    {
+        field: "createdAt",
+        name: "Created at",
+        width: 200,
+        align: "center"
     }
 ]
 
@@ -57,26 +65,23 @@ const Users = () => {
     const [isDataLoading, setIsDataLoading] = useState(false)
 
     const userFormModalElementRef = useRef(null)
-    const axiosCancelToken = useRef(null)
+    const axiosSignal = useRef(null)
 
     const isRowSelected = selectedRows.length === 1
 
     const getUsers = useCallback(() => {
         setIsDataLoading(true)
 
-        getUserListData(axiosCancelToken.current.token)
+        getUserListData(axiosSignal.current?.signal)
             .then(response => {
                 if (!!response && response.status === respStatus.success) {
                     setData(response.data)
                 }
             })
-            .catch(() => {
-                setData([])
-            })
             .finally(() => {
                 setIsDataLoading(false)
             })
-    }, [axiosCancelToken])
+    }, [axiosSignal])
 
     const handleCreateClick = useCallback(() => {
         userFormModalElementRef.current?.open()
@@ -90,86 +95,85 @@ const Users = () => {
     }, [selectedRows, isRowSelected])
 
     const handleDeleteClick = useCallback(() => {
-        if (!isRowSelected)
+        if (selectedRows.length === 0)
             return
 
         setIsDataLoading(true)
 
         const postParams = {
-            id: selectedRows[0].id
+            ids: JSON.stringify(selectedRows.map(({ id }) => id))
         }
 
-        deleteUserData(postParams, axiosCancelToken.current.token)
+        deleteUserData(postParams, axiosSignal.current?.signal)
             .then(response => {
-                if (!!response && response.status === 204) {
+                if (!!response && response.status === respStatus.success) {
                     getUsers()
                 }
             })
-            .catch(() => {
+            .finally(() => {
                 setIsDataLoading(false)
             })
-    }, [isRowSelected, selectedRows, getUsers])
+    }, [selectedRows, getUsers])
 
     useEffect(() => {
-        axiosCancelToken.current = axios.CancelToken.source()
+        axiosSignal.current = new AbortController()
 
         getUsers()
-    }, [getUsers])
 
-    useEffect(() => {
-        return () => axiosCancelToken.current?.cancel
-    }, [])
+        return () => {
+            axiosSignal.current?.abort()
+        }
+    }, [getUsers])
 
     const toolbar = (
         <>
-            <Button.Group disabled={isDataLoading}>
+            <ButtonGroup
+                size="sm"
+                isDisabled={isDataLoading}
+            >
                 <Button
-                    type="primary"
-                    onClick={handleCreateClick}
-                    faIcon="plus"
+                    color="primary"
+                    onPress={handleCreateClick}
                 >
+                    <FaIcon icon="plus" />
                     {"Create"}
                 </Button>
                 <Button
-                    onClick={handleEditClick}
-                    disabled={!isRowSelected}
-                    faIcon="edit"
+                    onPress={handleEditClick}
+                    isDisabled={!isRowSelected}
                 >
+                    <FaIcon icon="edit" />
                     {"Edit"}
                 </Button>
                 <Button
-                    onClick={handleDeleteClick}
-                    disabled={!isRowSelected}
-                    faIcon="trash-alt"
+                    onPress={handleDeleteClick}
+                    isDisabled={selectedRows.length === 0}
                 >
+                    <FaIcon icon="trash-alt" />
                     {"Delete"}
                 </Button>
-            </Button.Group>
-            <Button.Spacer />
+            </ButtonGroup>
+            <Spacer />
             <Button
-                onClick={getUsers}
-                disabled={isDataLoading}
-                faIcon="sync"
+                onPress={getUsers}
+                size="sm"
+                isDisabled={isDataLoading}
             >
+                <FaIcon icon="sync" />
                 {"Refresh"}
             </Button>
         </>
     )
 
     return (
-        <Layout>
-            <Heading
-                level={3}
-                center
-            >
-                {"Users"}
-            </Heading>
+        <div className="flex flex-col p-6">
             <Table
                 toolbar={toolbar}
                 columns={columns}
                 data={data}
                 getSelectedRows={setSelectedRows}
                 cellRenderers={cellRenderers}
+                isBulkMode
             />
             <ModalComponent
                 ref={userFormModalElementRef}
@@ -178,8 +182,9 @@ const Users = () => {
                 confirmText="Save"
                 onConfirm={getUsers}
                 width={500}
+                disableEsc
             />
-        </Layout>
+        </div>
     )
 }
 

@@ -12,7 +12,7 @@ namespace MN_MNX.Server.ModelsJson
 
         public string Email { get; set; } = string.Empty;
 
-        public int Role { get; set; } = (int)EUserRole.User;
+        public string Role { get; set; } = string.Empty;
 
         public string Password { get; set; } = string.Empty;
 

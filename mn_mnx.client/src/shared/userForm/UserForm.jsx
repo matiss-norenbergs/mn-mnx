@@ -1,16 +1,17 @@
 import PropTypes from "prop-types"
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from "react"
 import { useDispatch } from "react-redux"
-import { useNavigate } from "react-router-dom"
-import axios from "axios"
 
 import Form from "@/components/form"
 import Input from "@/components/input"
 import Select from "@/components/select"
+import DatePicker from "@/components/datePicker"
 
 import TimeZoneSelect from "../timeZoneSelect"
 
-import { getUserData, saveUserData } from "@/helpers/axios/userService"
+import { parseDate } from "@internationalized/date"
+
+import { getUserFormData, saveUserFormData, respStatus } from "@/helpers/axios/userService"
 import { loginUser } from "@/helpers/axios/authService"
 import { setUser } from "@/redux/features/user/userSlice"
 
@@ -37,10 +38,10 @@ const inputRules = [
 ]
 
 const roleOptions = [{
-    key: 1,
+    key: "1",
     value: "User"
 }, {
-    key: 2,
+    key: "2",
     value: "Admin"
 }]
 
@@ -49,36 +50,38 @@ const UserForm = forwardRef(({
     setModalTitle,
     formState
 }, ref) => {
-
     const [form] = Form.useForm()
+    
     const dispatch = useDispatch()
-    const navigate = useNavigate()
 
-    const axiosCancelToken = useRef(null)
+    const axiosSignal = useRef(null)
 
     const isRegisterForm = formState === userFormStates.register
     const isEditForm = objectId !== "0"
 
     const getUser = useCallback((userId) => {
+        if (formState === userFormStates.login)
+            return
+
+        if (userId !== "0")
+            setModalTitle("Edit user")
+
         const postParams = {
             id: userId
         }
 
-        getUserData(postParams, axiosCancelToken.current?.token)
+        getUserFormData(postParams, axiosSignal.current?.signal)
             .then(response => {
-                if (!!response && response.status === 200) {
+                if (!!response && response.status === respStatus.success) {
                     const {
-                        id,
                         name,
                         surname,
                         email,
                         password,
                         defaultTimeZone,
-                        role
+                        role,
+                        birthday
                     } = response.data
-
-                    if (id !== "0")
-                        setModalTitle("Edit user")
 
                     form.setFieldsValue({
                         name,
@@ -87,11 +90,12 @@ const UserForm = forwardRef(({
                         password,
                         password2: password,
                         defaultTimeZone,
-                        role
+                        role,
+                        birthday: birthday ? parseDate(birthday) : undefined
                     })
                 }
             })
-    }, [form, setModalTitle])
+    }, [form, setModalTitle, formState])
 
     const handleUserSave = useCallback(() => {
         return new Promise((resolve, reject) => {
@@ -103,8 +107,8 @@ const UserForm = forwardRef(({
                 .then(values => {
                     Object.keys(values).forEach(field => {
                         switch (field) {
-                            case "role":
-                                postParams[field] = Number(values[field])
+                            case "birthday":
+                                postParams[field] = values[field]?.toString() || ""
                                 break
                             default:
                                 postParams[field] = values[field]
@@ -112,9 +116,9 @@ const UserForm = forwardRef(({
                         }
                     })
 
-                    saveUserData(postParams, axiosCancelToken.current?.token)
+                    saveUserFormData(postParams, axiosSignal.current?.signal)
                         .then(response => {
-                            if (!!response && response.status === 200)
+                            if (!!response && response.status === respStatus.success)
                                 return resolve()
                         })
                         .catch(() => {
@@ -138,11 +142,11 @@ const UserForm = forwardRef(({
                             postParams[field] = values[field]
                     })
 
-                    loginUser(postParams, axiosCancelToken.current?.token)
+                    loginUser(postParams, axiosSignal.current?.signal)
                         .then(response => {
-                            if (!!response && response.status === 200) {
+                            if (!!response && response.status === respStatus.success) {
                                 dispatch(setUser(response.data))
-                                navigate("/")
+                                //navigate("/")
                                 return resolve()
                             }
                         })
@@ -154,7 +158,7 @@ const UserForm = forwardRef(({
                     return reject()
                 })
         })
-    }, [form, dispatch, navigate])
+    }, [form, dispatch])
 
     useImperativeHandle(ref, () => ({
         save: handleUserSave,
@@ -162,14 +166,14 @@ const UserForm = forwardRef(({
     }), [handleUserSave, handleUserLogin])
 
     useEffect(() => {
+        axiosSignal.current = new AbortController()
+
         getUser(objectId)
+
+        return () => {
+            axiosSignal.current?.abort()
+        }
     }, [getUser, objectId])
-
-    useEffect(() => {
-        axiosCancelToken.current = axios.CancelToken.source()
-
-        return () => axiosCancelToken.current?.cancel
-    }, [])
 
     const validatePassword = useCallback(({ field }, value) => {
         return new Promise((resolve, reject) => {
@@ -196,10 +200,8 @@ const UserForm = forwardRef(({
             {isRegisterForm && (
                 <>
                     <Form.Field
-                        required
                         name="name"
                         initialValue=""
-                        rules={inputRules}
                         label="Name"
                     >
                         <Input />
@@ -222,14 +224,20 @@ const UserForm = forwardRef(({
                 rules={inputRules}
                 label="Email"
             >
-                <Input />
+                <Input type="email" />
             </Form.Field>
             {isEditForm && (
                 <>
                     <Form.Field
+                        name="birthday"
+                        initialValue={undefined}
+                        label="Birthday"
+                    >
+                        <DatePicker />
+                    </Form.Field>
+                    <Form.Field
                         name="defaultTimeZone"
                         initialValue=""
-                        //rules={inputRules}
                         label="Time zone"
                     >
                         <TimeZoneSelect />
@@ -237,7 +245,6 @@ const UserForm = forwardRef(({
                     <Form.Field
                         name="role"
                         initialValue={roleOptions[0].key}
-                        //rules={inputRules}
                         label="Role"
                     >
                         <Select items={roleOptions} />
@@ -253,7 +260,7 @@ const UserForm = forwardRef(({
                         rules={passwordRules}
                         label="Password"
                     >
-                        <Input password />
+                        <Input type="password" />
                     </Form.Field>
                     {isRegisterForm && (
                         <Form.Field
@@ -263,7 +270,7 @@ const UserForm = forwardRef(({
                             rules={passwordRules}
                             label="Password (repeat)"
                         >
-                            <Input password />
+                            <Input type="password" />
                         </Form.Field>
                     )}
                 </>

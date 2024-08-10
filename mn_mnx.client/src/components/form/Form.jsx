@@ -1,5 +1,5 @@
 import PropTypes from "prop-types"
-import Form from "rc-field-form"
+import Form, { FormProvider } from "rc-field-form"
 
 import Field from "./components/field"
 
@@ -16,12 +16,14 @@ const MyForm = ({
     children
 }) => {
     return (
-        <Form
-            className={styles["mn-form"]}
-            form={form}
-        >
-            {children}
-        </Form>
+        <FormProvider>
+            <Form
+                className={styles["mn-form"]}
+                form={form}
+            >
+                {children}
+            </Form>
+        </FormProvider>
     )
 }
 MyForm.propTypes = propTypes

@@ -32,14 +32,97 @@ namespace MN_MNX.Server.Services
 
             var adminUser = new UserData
             {
-                Name = "Administrator",
-                Surname = "",
+                Surname = "Administrator",
                 Email = "admin",
                 Password = UserHelper.EncryptPassword("1"),
                 Role = EUserRole.Admin
             };
 
             SaveUserData(adminUser);
+        }
+
+        public long SaveUserData(UserData userData)
+        {
+            try
+            {
+                using (var tran = userEngine.GetTransaction())
+                {
+                    bool newEntity = userData.Id <= 0;
+                    if (newEntity)
+                    {
+                        userData.Id = tran.ObjectGetNewIdentity<long>(userTable);
+                        userData.DtuCreatedAt = DateTime.UtcNow;
+                    }
+
+                    var dbObject = new DBreezeObject<UserData>
+                    {
+                        NewEntity = newEntity,
+                        Entity = userData,
+                        Indexes = new List<DBreezeIndex>
+                        {
+                            new DBreezeIndex(_primaryIndex, userData.Id) { PrimaryIndex = true }
+                        }
+                    };
+
+                    tran.ObjectInsert(userTable, dbObject);
+
+                    tran.Commit();
+                }
+
+                return userData.Id;
+            }
+            catch (Exception ex)
+            {
+                ex.LogException();
+                return -1;
+            }
+        }
+
+        public UserData? GetUserData(long userId)
+        {
+            try
+            {
+                UserData? user = null;
+
+                using (var tran = userEngine.GetTransaction())
+                {
+                    var row = tran.Select<byte[], byte[]>(userTable, _primaryIndex.ToIndex(userId));
+                    if (row.Exists)
+                        user = row.ObjectGet<UserData>().Entity;
+                }
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                ex.LogException();
+                return null;
+            }
+        }
+
+        public bool DeleteUsers(HashSet<long> userIds)
+        {
+            try
+            {
+                var userCollection = GetUserByUserIdList(userIds);
+                if (userCollection.Values.Any(x => x.Role == EUserRole.Admin || x.Id == 1))
+                    return false;
+
+                using (var tran = userEngine.GetTransaction())
+                {
+                    foreach (var userId in userIds)
+                        tran.ObjectRemove(userTable, _primaryIndex.ToIndex(userId));
+
+                    tran.Commit();
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ex.LogException();
+                return false;
+            }
         }
 
         public List<UserData>? GetUserList()
@@ -92,22 +175,7 @@ namespace MN_MNX.Server.Services
             return userCollection;
         }
 
-        public Dictionary<string, UserData> GetUserCollectionByEmail()
-        {
-            try
-            {
-                var userList = GetUserList() ?? [];
-
-                return userList.ToDictionary(x => x.Email, x => x);
-            }
-            catch (Exception ex)
-            {
-                ex.LogException();
-                return [];
-            }
-        }
-
-        public Dictionary<long, UserData> GetUserCollectionById()
+        public Dictionary<long, UserData> GetAllUserCollection()
         {
             try
             {
@@ -122,82 +190,18 @@ namespace MN_MNX.Server.Services
             }
         }
 
-        public UserData? GetUserData(long userId)
+        public Dictionary<string, UserData> GetAllUserCollectionByEmail()
         {
             try
             {
-                var user = new UserData();
+                var userList = GetUserList() ?? [];
 
-                using (var tran = userEngine.GetTransaction())
-                {
-                    var row = tran.Select<byte[], byte[]>(userTable, _primaryIndex.ToIndex(userId));
-                    if (row.Exists)
-                        user = row.ObjectGet<UserData>().Entity;
-                }
-
-                return user;
+                return userList.ToDictionary(x => x.Email, x => x);
             }
             catch (Exception ex)
             {
                 ex.LogException();
-                return null;
-            }
-        }
-
-        public long SaveUserData(UserData userData)
-        {
-            try
-            {
-                using (var tran = userEngine.GetTransaction())
-                {
-                    bool newEntity = userData.Id <= 0;
-                    if (newEntity)
-                    {
-                        userData.Id = tran.ObjectGetNewIdentity<long>(userTable);
-                        userData.DtuCreatedAt = DateTime.UtcNow;
-                    }
-
-                    var dbObject = new DBreezeObject<UserData>
-                    {
-                        NewEntity = newEntity,
-                        Entity = userData,
-                        Indexes = new List<DBreezeIndex>
-                        {
-                            new DBreezeIndex(_primaryIndex, userData.Id) { PrimaryIndex = true }
-                        }
-                    };
-
-                    tran.ObjectInsert(userTable, dbObject);
-
-                    tran.Commit();
-                }
-
-                return userData.Id;
-            }
-            catch (Exception ex)
-            {
-                ex.LogException();
-                return -1;
-            }
-        }
-
-        public bool DeleteUser(long userId)
-        {
-            try
-            {
-                using (var tran = userEngine.GetTransaction())
-                {
-                    tran.ObjectRemove(userTable, _primaryIndex.ToIndex(userId));
-
-                    tran.Commit();
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                ex.LogException();
-                return false;
+                return [];
             }
         }
     }

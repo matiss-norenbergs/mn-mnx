@@ -1,8 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from "react"
-import axios from "axios"
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState
+} from "react"
 
-import Layout from "@/components/layout"
-import Heading from '@/components/heading'
+import {
+    Card,
+    CardHeader,
+    CardBody,
+    CardFooter
+} from "@nextui-org/react"
 
 import { getPostListPublicData, respStatus } from "../../helpers/axios/postService"
 
@@ -10,15 +18,14 @@ import styles from "./Home.module.css"
 
 const Home = () => {
     const [data, setData] = useState([])
-    const [selectedRows, setSelectedRows] = useState([])
     const [isDataLoading, setIsDataLoading] = useState(false)
 
-    const axiosCancelToken = useRef(null)
+    const axiosSignal = useRef(null)
 
     const getPosts = useCallback(() => {
         setIsDataLoading(true)
 
-        getPostListPublicData(axiosCancelToken?.current.token)
+        getPostListPublicData(axiosSignal.current?.signal)
             .then(response => {
                 if (!!response && response.status === respStatus.success)
                     setData(response.data)
@@ -32,40 +39,44 @@ const Home = () => {
     }, [])
 
     useEffect(() => {
-        axiosCancelToken.current = axios.CancelToken.source()
+        axiosSignal.current = new AbortController()
 
         getPosts()
+
+        return () => {
+            axiosSignal.current?.abort()
+        }
     }, [getPosts])
 
     return (
-        <Layout>
-            <Heading
-                level={3}
-                center
-            >
-                {"Home"}
-            </Heading>
-            <div className={styles["post-cards"]}>
-                {data.map(({
-                    id,
-                    title,
-                    content,
-                    createdAt,
-                    createdBy
-                }) => (
-                    <div
-                        key={id}
-                        className={styles["post-card"]}
-                    >
-                        <Heading level={5}>
+        <div className="p-6 flex flex-col gap-2">
+            {data.map(({
+                id,
+                title,
+                content,
+                createdAt,
+                createdBy
+            }) => (
+                <Card
+                    key={id}
+                    className="w-full flex bg-slate-200"
+                >
+                    <CardHeader>
+                        <p className="text-md font-bold">
                             {title}
-                        </Heading>
-                        <p className={styles["content"]}>{content}</p>
-                        <span className={styles["details"]}>{`${createdBy} | ${createdAt}`}</span>
-                    </div>
-                ))}
-            </div>
-        </Layout>
+                        </p>
+                    </CardHeader>
+                    <CardBody className={styles["content"]}>
+                        {content}
+                    </CardBody>
+                    <CardFooter className="flex justify-end">
+                        <p>
+                            {`${createdBy} | ${createdAt}`}
+                        </p>
+                    </CardFooter>
+                </Card>
+            ))}
+        </div>
     )
 }
 

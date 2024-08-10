@@ -135,13 +135,14 @@ namespace MN_MNX.Server.Services
             }
         }
 
-        public bool DeletePost(long userId)
+        public bool DeletePosts(HashSet<long> postIds)
         {
             try
             {
                 using (var tran = postEngine.GetTransaction())
                 {
-                    tran.ObjectRemove(postTable, _primaryIndex.ToIndex(userId));
+                    foreach (var id in postIds)
+                        tran.ObjectRemove(postTable, _primaryIndex.ToIndex(id));
 
                     tran.Commit();
                 }

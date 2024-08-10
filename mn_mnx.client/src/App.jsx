@@ -1,9 +1,11 @@
 import { Provider } from "react-redux"
+import { useNavigate } from "react-router-dom"
+
+import { NextUIProvider } from "@nextui-org/react"
 
 import Core from "./components/core"
 
 import Home from './pages/home'
-import Login from "./pages/login"
 import Users from './pages/users'
 import Posts from "./pages/posts"
 
@@ -32,26 +34,30 @@ const routes = [
         element: Posts,
         //menuHidden: true,
         admin: true
-    },
-    {
-        path: "/login",
-        title: "Login",
-        icon: "arrow-right-to-bracket",
-        element: Login,
-        menuHidden: true
     }
 ]
 
 const App = () => {
+    const navigate = useNavigate()
+
     return (
-        <Provider store={store}>
-            <Core
-                appTitle="MNX"
-                showHeaderLogo={false}
-                routes={routes}
-                hideFooter
-            />
-        </Provider>
+        <NextUIProvider
+            navigate={navigate}
+            locale="en-GB"
+        >
+            <main className="light text-foreground bg-background">
+                <Provider store={store}>
+                    <Core
+                        appTitle="MNX"
+                        routes={routes}
+                        headerProps={{
+                            showLogo: true,
+                            showRouteIcons: true
+                        }}
+                    />
+                </Provider>
+            </main>
+        </NextUIProvider>
     )
 }
 

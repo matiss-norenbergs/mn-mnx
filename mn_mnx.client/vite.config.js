@@ -62,7 +62,20 @@ export default defineConfig({
             '^/log': {
                 target,
                 secure: false
-            }
+            },
+            '^/MyImages': {
+                target,
+                secure: false
+            },
+
+            '^/api/user': {
+                target,
+                secure: false
+            },
+            '^/api/post': {
+                target,
+                secure: false
+            },
         },
         port: 5173,
         https: {

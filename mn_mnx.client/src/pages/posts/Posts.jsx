@@ -1,20 +1,25 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import axios from 'axios'
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState
+} from 'react'
 
-import Layout from '@/components/layout'
-import Heading from "@/components/heading"
-import Button from '@/components/button'
+import {
+    Button,
+    ButtonGroup,
+    Spacer
+} from "@nextui-org/react"
+
 import Table from "@/components/table"
 import FaIcon from "@/components/faIcon"
+import ModalComponent from "@/components/modalComponent"
 
-import { deletePostData, getPostListData, respStatus, savePostData } from '../../helpers/axios/postService'
+import PostsForm from './components/postsForm'
+
+import { deletePostData, getPostListData, respStatus } from '../../helpers/axios/postService'
 
 const columns = [
-    {
-        field: "select",
-        name: "",
-        width: 30
-    },
     {
         field: "title",
         name: "Title",
@@ -51,127 +56,127 @@ const columns = [
     },
 ]
 
-const cellRenderers = {
-    yesNoRenderer: ({ value }) => <FaIcon icon={value ? ["fas", "circle-check"] : ["far", "circle"]} />
-}
-
 const Posts = () => {
     const [data, setData] = useState([])
     const [selectedRows, setSelectedRows] = useState([])
     const [isDataLoading, setIsDataLoading] = useState(false)
 
-    const axiosCancelToken = useRef(null)
+    const axiosSignal = useRef(null)
+    const postModalRef = useRef(null)
 
     const isRowSelected = selectedRows.length === 1
 
     const getPosts = useCallback(() => {
         setIsDataLoading(true)
 
-        getPostListData(axiosCancelToken?.current.token)
+        getPostListData(axiosSignal.current?.signal)
             .then(response => {
                 if (!!response && response.status === respStatus.success)
                     setData(response.data)
             })
-            .catch(() => {
-                setData([])
-            })
             .finally(() => {
                 setIsDataLoading(false)
             })
     }, [])
 
-    const savePost = useCallback(() => {
-        savePostData({}, axiosCancelToken?.current.token)
-            .then(response => {
-                if (!!response && response.status === respStatus.success)
-                    console.log(response.data)
-            })
-            .catch(() => {
-                //setData([])
-            })
-            .finally(() => {
-                setIsDataLoading(false)
-            })
+    const handleCreateClick = useCallback(() => {
+        postModalRef.current?.open({ id: "0" })
     }, [])
+
+    const handleEditClick = useCallback(() => {
+        if (!isRowSelected)
+            return
+
+        postModalRef.current?.open({ id: selectedRows[0].id })
+    }, [isRowSelected, selectedRows])
 
     const handleDeleteClick = useCallback(() => {
-        if (!isRowSelected)
+        if (selectedRows.length === 0)
             return
 
         setIsDataLoading(true)
 
         const postParams = {
-            id: selectedRows[0].id
+            ids: JSON.stringify(selectedRows.map(x => x.id))
         }
 
-        deletePostData(postParams, axiosCancelToken.current.token)
+        deletePostData(postParams, axiosSignal.current?.signal)
             .then(response => {
-                if (!!response && response.status === 204)
+                if (!!response && response.status === 200)
                     getPosts()
             })
-            .catch(() => {
+            .finally(() => {
                 setIsDataLoading(false)
             })
-    }, [isRowSelected, selectedRows, getPosts])
+    }, [selectedRows, getPosts])
 
     useEffect(() => {
-        axiosCancelToken.current = axios.CancelToken.source()
+        axiosSignal.current = new AbortController()
 
         getPosts()
+
+        return () => {
+            axiosSignal.current?.abort()
+        }
     }, [getPosts])
 
     const toolbar = (
         <>
-            <Button.Group disabled={isDataLoading}>
+            <ButtonGroup
+                size="sm"
+                isDisabled={isDataLoading}
+            >
                 <Button
-                    type="primary"
-                    onClick={savePost}
-                    faIcon="plus"
+                    color="primary"
+                    onPress={handleCreateClick}
                 >
+                    <FaIcon icon="plus" />
                     {"Create"}
                 </Button>
                 <Button
-                    // onClick={handleEditClick}
-                    disabled={!isRowSelected || true}
-                    faIcon="edit"
+                    onPress={handleEditClick}
+                    isDisabled={!isRowSelected}
                 >
+                    <FaIcon icon="edit" />
                     {"Edit"}
                 </Button>
                 <Button
-                    onClick={handleDeleteClick}
-                    disabled={!isRowSelected}
-                    faIcon="trash-alt"
+                    onPress={handleDeleteClick}
+                    isDisabled={selectedRows.length === 0}
                 >
+                    <FaIcon icon="trash-alt" />
                     {"Delete"}
                 </Button>
-            </Button.Group>
-            <Button.Spacer />
+            </ButtonGroup>
+            <Spacer />
             <Button
-                onClick={getPosts}
-                disabled={isDataLoading}
-                faIcon="sync"
+                onPress={getPosts}
+                size="sm"
+                isDisabled={isDataLoading}
             >
+                <FaIcon icon="sync" />
                 {"Refresh"}
             </Button>
         </>
     )
 
     return (
-        <Layout>
-            <Heading
-                level={3}
-                center
-            >
-                {"Posts"}
-            </Heading>
+        <div className="flex flex-col p-6">
             <Table
                 toolbar={toolbar}
                 columns={columns}
                 data={data}
                 getSelectedRows={setSelectedRows}
-                cellRenderers={cellRenderers}
+                isBulkMode
             />
-        </Layout>
+            <ModalComponent
+                ref={postModalRef}
+                title="Create post"
+                component={<PostsForm />}
+                onConfirm={getPosts}
+                disableEsc
+            />
+        </div>
     )
 }
 

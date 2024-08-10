@@ -1,52 +1,27 @@
-import axios from "axios"
+import { reactRequest, respStatus } from "../reactRequest"
+import { reactObject, userTypes } from "../constants"
 
-import { apiUrl, objects } from "@/helpers/constants"
-
-const respStatus = {
-    success: 200
+const getUserListData = (signal) => {
+    return reactRequest(reactObject.user, userTypes.list, "get", {}, signal)
 }
 
-const headers = {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
+const deleteUserData = (postParams, signal) => {
+    return reactRequest(reactObject.user, userTypes.list, "delete", postParams, signal)
 }
 
-const getUserListData = async (cancelToken) => {
-    return axios.get(`${apiUrl}${objects.user}`, {
-        headers: headers
-    }, {
-        cancelToken: cancelToken
-    })
+const getUserFormData = (postParams, signal) => {
+    return reactRequest(reactObject.user, userTypes.form, "get", postParams, signal)
 }
 
-const getUserData = (postParams, cancelToken) => {
-    return axios.get(`${apiUrl}${objects.user}/${postParams?.id}`, {
-        cancelToken: cancelToken
-    })
-}
-
-const saveUserData = (postParams, cancelToken) => {
-    return axios.post(`${apiUrl}${objects.user}`,
-        postParams,
-        {
-            headers: headers
-        },
-        {
-            cancelToken: cancelToken
-        }
-    )
-}
-
-const deleteUserData = (postParams, cancelToken) => {
-    return axios.delete(`${apiUrl}${objects.user}/${postParams?.id}`, {
-        cancelToken: cancelToken
-    })
+const saveUserFormData = (postParams, signal) => {
+    return reactRequest(reactObject.user, userTypes.form, "save", postParams, signal)
 }
 
 export {
     respStatus,
+
     getUserListData,
-    getUserData,
-    saveUserData,
-    deleteUserData
+    deleteUserData,
+    getUserFormData,
+    saveUserFormData,
 }

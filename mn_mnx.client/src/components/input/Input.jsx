@@ -1,31 +1,59 @@
 import PropTypes from "prop-types"
-import classNames from "classnames"
 
-import styles from "./Input.module.css"
+import {
+    useState
+} from "react"
+
+import {
+    Input as NextInput
+} from "@nextui-org/react"
+
+import FaIcon from "../faIcon"
+
+//import styles from "./Input.module.css"
 
 const propTypes = {
-    className: PropTypes.string,
-    password: PropTypes.bool
+    type: PropTypes.string,
+    allowClear: PropTypes.bool
 }
-const defaultProps = {}
 
 const Input = ({
-    className,
-    password,
+    type,
+    allowClear = false,
     ...rest
 }) => {
+    const [isVisible, setIsVisible] = useState(false)
+
+    const isPassword = type === "password"
+
+    const handleVisibiltyChange = () => setIsVisible(prevValue => !prevValue)
+
     return (
-        <input
-            className={classNames(
-                styles["mn-input"],
-                className
-            )}
-            type={password ? "password" : "text"}
+        <NextInput
+            variant="bordered"
+            labelPlacement="outside"
+            isClearable={allowClear}
+            endContent={
+                isPassword ? (
+                    <button
+                        className="focus:outline-none"
+                        type="button"
+                        onClick={handleVisibiltyChange}
+                        aria-label="toggle password visibility"
+                    >
+                        <FaIcon
+                            className="text-1xl text-default-400 pointer-events-none"
+                            icon={["fas", isVisible ? "eye" : "eye-slash"]}
+                            fixedWidth
+                        />
+                    </button>
+                ) : null
+            }
+            type={isPassword && isVisible ? "text" : type}
             {...rest}
         />
     )
 }
 Input.propTypes = propTypes
-Input.defaultProps = defaultProps
 
 export default Input

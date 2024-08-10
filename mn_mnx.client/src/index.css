@@ -5,6 +5,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+128+Text&family=Libre+Barcode+39+Extended+Text&family=Major+Mono+Display&family=Sriracha&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @layer base {
+    :root {
+        --color-secondary: 255, 0, 0;
+    }
+} */
+
 :root {
     --white: #fff;
     --white-2: #eee;
@@ -63,8 +73,6 @@
     padding: 0;
     box-sizing: border-box;
     text-decoration: none;
-    border: none;
-    font-family: var(--font-family);
 }
 
 ::-webkit-scrollbar {
@@ -73,7 +81,6 @@
 
 ::-webkit-scrollbar-thumb {
     background: rgba(112, 112, 112, 0.5);
-    border-radius: 15px;
 }
 
 body {

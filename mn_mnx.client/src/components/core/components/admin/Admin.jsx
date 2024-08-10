@@ -28,7 +28,10 @@ const Admin = ({
 
     return (
         <div className={styles["wrapper"]}>
-            <div className={styles["navigation"]}>
+            <div className={classNames(
+                styles["navigation"],
+                "bg-secondary"
+            )}>
                 {paths.map(({ path, title, icon }) => (
                     <NavLink
                         key={path}

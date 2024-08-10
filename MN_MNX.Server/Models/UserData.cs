@@ -27,7 +27,7 @@ namespace MN_MNX.Server.Models
         public EUserRole Role { get; set; } = EUserRole.User;
 
         [ProtoMember(7, IsRequired = true)]
-        public int LanguageId { get; set; } = 2057; //en-GB //1062 lv-LV //1031 de-DE
+        public int LanguageId { get; set; } = 1062; //2057 en-GB //1062 lv-LV //1031 de-DE
 
         [ProtoMember(8, IsRequired = true)]
         public string DefaultTimeZone { get; set; } = "FLE Standard Time";
@@ -37,6 +37,9 @@ namespace MN_MNX.Server.Models
 
         [ProtoMember(10, IsRequired = true)]
         public DateTime DtuCreatedAt { get; set; } = DateTime.MinValue;
+
+        [ProtoMember(11, IsRequired = true)]
+        public DateTime? DtBirthday { get; set; } = null;
     }
 
     public static class UserDataExtensions
