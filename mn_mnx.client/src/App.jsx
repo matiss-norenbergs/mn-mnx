@@ -8,6 +8,7 @@ import Core from "./components/core"
 import Home from './pages/home'
 import Users from './pages/users'
 import Posts from "./pages/posts"
+import Profile from "./pages/profile"
 
 import store from "./redux/stores/store"
 
@@ -18,6 +19,13 @@ const routes = [
         icon: "home",
         element: Home,
         //menuHidden: true
+    },
+    {
+        path: "/profile/:id",
+        title: "Profile",
+        icon: "person",
+        element: Profile,
+        menuHidden: true
     },
     {
         path: "/users",

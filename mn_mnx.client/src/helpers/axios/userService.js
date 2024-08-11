@@ -17,6 +17,19 @@ const saveUserFormData = (postParams, signal) => {
     return reactRequest(reactObject.user, userTypes.form, "save", postParams, signal)
 }
 
+const getUserProfileSettingsData = (signal) => {
+    return reactRequest(reactObject.user, userTypes.profileSettings, "get", {}, signal)
+}
+
+const saveUserProfileSettingsData = (postParams, signal) => {
+    return reactRequest(reactObject.user, userTypes.profileSettings, "save", postParams, signal)
+}
+
+// Public
+const getUserProfile = (postParams, signal) => {
+    return reactRequest(`${reactObject.user}/profile`, null, null, postParams, signal, { query: `?operation=get` })
+}
+
 export {
     respStatus,
 
@@ -24,4 +37,10 @@ export {
     deleteUserData,
     getUserFormData,
     saveUserFormData,
+
+    getUserProfileSettingsData,
+    saveUserProfileSettingsData,
+
+    // Public
+    getUserProfile
 }

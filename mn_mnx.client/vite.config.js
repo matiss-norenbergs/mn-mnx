@@ -43,19 +43,11 @@ export default defineConfig({
     },
     server: {
         proxy: {
-            '^/api/UserData': {
-                target,
-                secure: false
-            },
             '^/api/Authentication': {
                 target,
                 secure: false
             },
             '^/api/Generic': {
-                target,
-                secure: false
-            },
-            '^/api/PostData': {
                 target,
                 secure: false
             },

@@ -40,11 +40,12 @@ const Core = ({
     const headerPaths = useMemo(() => {
         const isAdmin = user?.IsAdmin === true
 
-        const headerRoutes = routes.filter(({ menuHidden, admin }) => !menuHidden && !admin).map(({ path, title, icon }) => ({
-            path,
-            title,
-            icon
-        }))
+        const headerRoutes = routes.filter(({ menuHidden, admin }) => !menuHidden && !admin)
+            .map(({ path, title, icon }) => ({
+                path,
+                title,
+                icon
+            }))
 
         if (isAdmin) {
             headerRoutes.push({

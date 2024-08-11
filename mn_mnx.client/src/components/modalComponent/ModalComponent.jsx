@@ -29,7 +29,7 @@ const propTypes = {
     confirmText: PropTypes.string,
     cancelText: PropTypes.string,
     onConfirm: PropTypes.func,
-    onModalConfirm: PropTypes.func,
+    onModalConfirm: PropTypes.string,
     onCancel: PropTypes.func,
     disableEsc: PropTypes.bool,
     size: PropTypes.string

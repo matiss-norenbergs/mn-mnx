@@ -17,8 +17,9 @@ export default {
         colors: {
           secondary: {
             DEFAULT: "#0369a1",
-            foreground: "#000000",
+            foreground: "#D4D4D8",
           },
+          grey: "#dddddd",
           focus: "#0369a1",
         },
       },

@@ -14,7 +14,9 @@ const reactObject = {
 
 const userTypes = {
     list: "list",
-    form: "form"
+    form: "form",
+    profile: "profile",
+    profileSettings: "profileSettings"
 }
 
 const postTypes = {

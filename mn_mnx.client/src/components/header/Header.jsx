@@ -1,7 +1,8 @@
 import PropTypes from "prop-types"
 import classNames from "classnames"
 
-import { useDispatch, useSelector } from "react-redux"
+import { useNavigate } from "react-router-dom"
+import { useSelector } from "react-redux"
 import { useCallback, useRef } from "react"
 
 import {
@@ -23,7 +24,6 @@ import ModalComponent from "../modalComponent"
 import UserForm from "@/shared/userForm"
 
 import { logoutUser } from "@/helpers/axios/authService"
-import { removeUser } from "@/redux/features/user/userSlice"
 
 import styles from "./Header.module.css"
 
@@ -43,7 +43,7 @@ const Header = ({
     showRouteIcons = false
 }) => {
     const user = useSelector((state) => state.user)
-    const dispatch = useDispatch()
+    const navigate = useNavigate()
 
     const userLoginFormRef = useRef(null)
 
@@ -55,10 +55,11 @@ const Header = ({
         logoutUser()
             .then(response => {
                 if (response.status === 200) {
-                    dispatch(removeUser())
+                    //dispatch(removeUser())
+                    navigate(0)
                 }
             })
-    }, [dispatch])
+    }, [navigate])
 
     return (
         <Navbar
@@ -113,13 +114,16 @@ const Header = ({
                             variant="flat"
                         >
                             <DropdownItem key="profile" className="h-14 gap-2">
-                                <p className="font-semibold">
+                                <Link
+                                    className="font-semibold"
+                                    href={`/profile/${user.Id}`}
+                                >
                                     <FaIcon
                                         icon="user"
                                         padded
                                     />
                                     {`${user.Name} ${user.Surname}`}
-                                </p>
+                                </Link>
                             </DropdownItem>
                             <DropdownItem key="logout" color="danger">
                                 <Link onPress={handleLogout}>

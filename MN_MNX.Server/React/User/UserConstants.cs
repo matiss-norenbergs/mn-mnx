@@ -11,5 +11,12 @@
         internal const string TYPE_USER_FORM = "form";
         internal const string OPER_USER_FORM_GET = "get";
         internal const string OPER_USER_FORM_SAVE = "save";
+
+        internal const string TYPE_USER_PROFILE = "profile";
+        internal const string OPER_USER_PROFILE_GET = "get";
+
+        internal const string TYPE_USER_PROFILE_SETTINGS = "profileSettings";
+        internal const string OPER_USER_PROFILE_SETTINGS_GET = "get";
+        internal const string OPER_USER_PROFILE_SETTINGS_SAVE = "save";
     }
 }

@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MN_MNX.Server.Helpers;
 using MN_MNX.Server.Models;
 using MN_MNX.Server.React.User.Models;
@@ -15,11 +15,16 @@ namespace MN_MNX.Server.React.User
         private readonly UserService _userService = userService;
         private readonly UserData? _user = userContext.User;
 
+        [Authorize(Roles = "Admin,User")]
+        [HttpPost]
         public async Task<ActionResult> HandleRequest([FromQuery] string type, [FromQuery] string operation)
         {
             try
             {
                 object? result = null;
+
+                if (_user.Role == EUserRole.User && (UserConstants.TYPE_USER_LIST == type || UserConstants.TYPE_USER_FORM == type))
+                    return Unauthorized();
 
                 var postParams = new Dictionary<string, string>();
                 foreach (var item in Request.Form)
@@ -35,7 +40,12 @@ namespace MN_MNX.Server.React.User
                     case UserConstants.TYPE_USER_FORM:
                         result = HandleFormRequest(operation, postParams);
                         if (result == null)
-                            throw new Exception("Error saving user form data");
+                            throw new Exception("Error getting user form data");
+                        break;
+                    case UserConstants.TYPE_USER_PROFILE_SETTINGS:
+                        result = HandleProfileSettingsRequest(operation, postParams);
+                        if (result == null)
+                            throw new Exception("Error getting user profile settings data");
                         break;
                     default:
                         throw new Exception("Error, invalid user type");
@@ -62,15 +72,15 @@ namespace MN_MNX.Server.React.User
                     case UserConstants.OPER_USER_LIST_GET:
                         result = GetListData();
                         if (result == null)
-                            throw new Exception("Error getting post list data");
+                            throw new Exception("Error getting user list data");
                         break;
                     case UserConstants.OPER_USER_LIST_DELETE:
                         result = DeleteUserData(postParams);
                         if (result == null)
-                            throw new Exception("Error deleting post data");
+                            throw new Exception("Error deleting user data");
                         break;
                     default:
-                        throw new Exception("Error, invalid post list operation");
+                        throw new Exception("Error, invalid user list operation");
                 }
             }
             catch (Exception ex)
@@ -143,15 +153,15 @@ namespace MN_MNX.Server.React.User
                     case UserConstants.OPER_USER_FORM_GET:
                         result = GetFormData(postParams);
                         if (result == null)
-                            throw new Exception("Error getting post form data");
+                            throw new Exception("Error getting user form data");
                         break;
                     case UserConstants.OPER_USER_FORM_SAVE:
                         result = SaveFormData(postParams);
                         if (result == null)
-                            throw new Exception("Error saving post form data");
+                            throw new Exception("Error saving user form data");
                         break;
                     default:
-                        throw new Exception("Error, invalid post form operation");
+                        throw new Exception("Error, invalid user form operation");
                 }
             }
             catch (Exception ex)
@@ -257,5 +267,164 @@ namespace MN_MNX.Server.React.User
         }
 
         #endregion Admin user form
+
+        #region User profile settings
+
+        private object? HandleProfileSettingsRequest(string operation, Dictionary<string, string> postParams)
+        {
+            object? result = null;
+            try
+            {
+                switch (operation)
+                {
+                    case UserConstants.OPER_USER_PROFILE_SETTINGS_GET:
+                        result = GetUserProfileSettingsFormData(postParams);
+                        if (result == null)
+                            throw new Exception("Error getting user profile settings data");
+                        break;
+                    case UserConstants.OPER_USER_PROFILE_SETTINGS_SAVE:
+                        result = SaveUserProfileSettingsFormData(postParams);
+                        if (result == null)
+                            throw new Exception("Error saving user profile settings data");
+                        break;
+                    default:
+                        throw new Exception("Error, invalid user profile settings operation");
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.LogException();
+            }
+            return result;
+        }
+
+        private UserProfileSettingsJson? GetUserProfileSettingsFormData(Dictionary<string, string> postParams)
+        {
+            try
+            {
+                var settings = _userService.GetUserProfileSettings(_user.Id);
+                var hiddenDetails = (EUserProfileDetails)settings.HiddenProfileDetails;
+
+                var result = new UserProfileSettingsJson
+                {
+                    ShowFullName = !hiddenDetails.HasFlag(EUserProfileDetails.FullName),
+                    ShowEmail = !hiddenDetails.HasFlag(EUserProfileDetails.Email),
+                    ShowBirthday = !hiddenDetails.HasFlag(EUserProfileDetails.Birthday)
+                };
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                ex.LogException();
+                return null;
+            }
+        }
+
+        private bool? SaveUserProfileSettingsFormData(Dictionary<string, string> postParams)
+        {
+            try
+            {
+                var settings = _userService.GetUserProfileSettings(_user.Id);
+                var hiddenDetails = (EUserProfileDetails)settings.HiddenProfileDetails;
+
+                if (postParams.TryGetValue("showFullName", out var tmpStr) && bool.TryParse(tmpStr, out var tmpBool))
+                    HandleDetail(ref hiddenDetails, EUserProfileDetails.FullName, tmpBool);
+
+                if (postParams.TryGetValue("showEmail", out tmpStr) && bool.TryParse(tmpStr, out tmpBool))
+                    HandleDetail(ref hiddenDetails, EUserProfileDetails.Email, tmpBool);
+
+                if (postParams.TryGetValue("showBirthday", out tmpStr) && bool.TryParse(tmpStr, out tmpBool))
+                    HandleDetail(ref hiddenDetails, EUserProfileDetails.Birthday, tmpBool);
+
+                settings.HiddenProfileDetails = (int)hiddenDetails;
+
+                if (!_userService.SaveUserProfileSettings(settings, _user))
+                    throw new Exception("Error saving user profile settings");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ex.LogException();
+                return null;
+            }
+        }
+
+        private void HandleDetail(ref EUserProfileDetails hiddenDetails, EUserProfileDetails detail, bool isShow)
+        {
+            var isHidden = hiddenDetails.HasFlag(detail);
+
+            if (isShow && isHidden)
+                hiddenDetails &= ~detail;
+            else if (!isShow && !isHidden)
+                hiddenDetails |= detail;
+        }
+
+        #endregion User profile settings
+
+        #region Public user requests
+
+        [HttpPost(UserConstants.TYPE_USER_PROFILE)]
+        public async Task<ActionResult> HandleProfileRequest([FromQuery] string operation)
+        {
+            try
+            {
+                object? result = null;
+
+                var postParams = new Dictionary<string, string>();
+                foreach (var item in Request.Form)
+                    postParams[item.Key] = item.Value;
+
+                switch (operation)
+                {
+                    case UserConstants.OPER_USER_PROFILE_GET:
+                        result = GetUserProfile(postParams);
+                        if (result == null)
+                            throw new Exception("Error getting profile data");
+                        break;
+                    default:
+                        throw new Exception("Error, invalid user profile type");
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                ex.LogException();
+                return BadRequest();
+            }
+        }
+
+        public UserProfileJson? GetUserProfile(Dictionary<string, string> postParams)
+        {
+            try
+            {
+                if (!postParams.TryGetValue("id", out var tmpStr) || !long.TryParse(tmpStr, out var id) || id <= 0)
+                    throw new Exception("Error getting id param");
+
+                var userData = _userService.GetUserData(id);
+                if (userData == null)
+                    throw new Exception("Error getting user data");
+
+                var userProfileSettings = _userService.GetUserProfileSettings(id);
+
+                var result = new UserProfileJson
+                {
+                    NameSurname = userData.GetUserFullName(),
+                    ImageUrl = "https://scontent.frix5-1.fna.fbcdn.net/v/t1.30497-1/453178253_471506465671661_2781666950760530985_n.png?stp=dst-png_p200x200&_nc_cat=1&ccb=1-7&_nc_sid=136b72&_nc_ohc=Cz0lTg2_DCEQ7kNvgGPVkxn&_nc_ht=scontent.frix5-1.fna&oh=00_AYCbiCznCbZMFGorh34FgEDP_lsqkPDQ8Iw6J0afz-yFCA&oe=66E0417A",
+                    Details = UserHelper.GetUserDetails(userData, userProfileSettings, _user)
+                };
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                ex.LogException();
+                return null;
+            }
+        }
+
+        #endregion Public user requests
     }
 }

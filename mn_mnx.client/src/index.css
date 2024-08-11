@@ -9,12 +9,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* @layer base {
-    :root {
-        --color-secondary: 255, 0, 0;
-    }
-} */
-
 :root {
     --white: #fff;
     --white-2: #eee;

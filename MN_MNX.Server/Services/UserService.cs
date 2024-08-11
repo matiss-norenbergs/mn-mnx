@@ -9,6 +9,7 @@ namespace MN_MNX.Server.Services
     public class UserService
     {
         private static string userTable = "Users";
+        private static string userProfileSettingsTable = "UserProfileSettings";
 
         private static byte _primaryIndex = 1;
 
@@ -40,6 +41,8 @@ namespace MN_MNX.Server.Services
 
             SaveUserData(adminUser);
         }
+
+        #region User
 
         public long SaveUserData(UserData userData)
         {
@@ -204,5 +207,49 @@ namespace MN_MNX.Server.Services
                 return [];
             }
         }
+
+        #endregion User
+
+        #region User profile settings
+
+        public bool SaveUserProfileSettings(UserProfileSettingsData settings, UserData user)
+        {
+            try
+            {
+                using (var tran = userEngine.GetTransaction())
+                {
+                    tran.Insert(userProfileSettingsTable, user.Id, settings);
+                    tran.Commit();
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ex.LogException();
+                return false;
+            }
+        }
+
+        public UserProfileSettingsData GetUserProfileSettings(long userId)
+        {
+            var settings = new UserProfileSettingsData();
+            try
+            {
+                using (var tran = userEngine.GetTransaction())
+                {
+                    var row = tran.Select<long, UserProfileSettingsData>(userProfileSettingsTable, userId);
+                    if (row.Exists)
+                        settings = row.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.LogException();
+            }
+            return settings;
+        }
+
+        #endregion User profile settings
     }
 }

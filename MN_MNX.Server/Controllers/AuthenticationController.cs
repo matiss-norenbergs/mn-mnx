@@ -14,6 +14,7 @@ namespace MN_MNX.Server.Controllers
     public class AuthenticationController(UserService userService, UserContext userContext) : ControllerBase
     {
         private readonly UserService _userService = userService;
+        private readonly UserData? _user = userContext.User;
 
         [HttpPost("login")]
         public async Task<ActionResult<bool>> Login([FromBody] AuthenticationJson authData)
@@ -83,12 +84,13 @@ namespace MN_MNX.Server.Controllers
 
                 var userDataResponse = new Dictionary<string, object>
                 {
-                    { "Name", userContext.User.Name },
-                    { "Surname", userContext.User.Surname },
-                    { "Email", userContext.User.Email }
+                    { "Name", _user.Name },
+                    { "Surname", _user.Surname },
+                    { "Email", _user.Email },
+                    { "Id", _user.Id.ToString() }
                 };
 
-                if (userContext.User.Role == EUserRole.Admin)
+                if (_user.Role == EUserRole.Admin)
                     userDataResponse.Add("IsAdmin", true);
 
                 return Ok(userDataResponse);

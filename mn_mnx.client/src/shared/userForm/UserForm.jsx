@@ -1,4 +1,5 @@
 import PropTypes from "prop-types"
+import { useNavigate } from "react-router-dom"
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from "react"
 import { useDispatch } from "react-redux"
 
@@ -53,6 +54,7 @@ const UserForm = forwardRef(({
     const [form] = Form.useForm()
     
     const dispatch = useDispatch()
+    const navigate = useNavigate()
 
     const axiosSignal = useRef(null)
 
@@ -146,7 +148,7 @@ const UserForm = forwardRef(({
                         .then(response => {
                             if (!!response && response.status === respStatus.success) {
                                 dispatch(setUser(response.data))
-                                //navigate("/")
+                                navigate(0)
                                 return resolve()
                             }
                         })
@@ -158,7 +160,7 @@ const UserForm = forwardRef(({
                     return reject()
                 })
         })
-    }, [form, dispatch])
+    }, [form, dispatch, navigate])
 
     useImperativeHandle(ref, () => ({
         save: handleUserSave,

@@ -1,0 +1,14 @@
+.main-card {
+    display: flex;
+
+    .image {
+        width: 200px;
+    }
+
+    .main-list {
+        margin-left: 1rem;
+        width: auto;
+        flex: 1;
+        border-radius: 14px;
+    }
+}
