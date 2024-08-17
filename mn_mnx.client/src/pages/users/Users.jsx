@@ -11,7 +11,7 @@ import ModalComponent from "@/components/modalComponent"
 import FaIcon from "@/components/faIcon"
 
 import UserForm from "@/shared/userForm"
-import RoleRenderer from "./components/RoleRenderer"
+import { FunctionsRenderer, RoleRenderer } from "./components"
 
 import { deleteUserData, getUserListData, respStatus } from "@/helpers/axios/userService"
 
@@ -52,11 +52,18 @@ const columns = [
         name: "Created at",
         width: 200,
         align: "center"
+    },
+    {
+        field: "functions",
+        name: "Functions",
+        align: "center",
+        cellRenderer: "functionsRenderer"
     }
 ]
 
 const cellRenderers = {
-    roleRenderer: RoleRenderer
+    roleRenderer: RoleRenderer,
+    functionsRenderer: FunctionsRenderer
 }
 
 const Users = () => {

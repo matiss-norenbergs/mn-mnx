@@ -23,9 +23,6 @@ import { getUserProfile, respStatus } from "@/helpers/axios/userService"
 
 import styles from "./Profile.module.css"
 
-const tmpImg0 = "https://scontent.frix5-1.fna.fbcdn.net/v/t1.30497-1/453178253_471506465671661_2781666950760530985_n.png?stp=dst-png_p200x200&_nc_cat=1&ccb=1-7&_nc_sid=136b72&_nc_ohc=BmsOX3Sy9RcQ7kNvgEMD4x-&_nc_ht=scontent.frix5-1.fna&oh=00_AYC7pkIKdeTs3U5UtMyuA_BNUQqY4clmpcYaeBmonn5Ylg&oe=66DF283A"
-//const tmpImg1 = "https://avatars.akamai.steamstatic.com/b707ac3b768f97b6bffe7e23a70ffa9830e33dbb_full.jpg"
-
 const Profile = () => {
     const { id } = useParams()
     const user = useSelector((state) => state.user)
@@ -85,9 +82,9 @@ const Profile = () => {
                             width={200}
                             height={200}
                             src={profile.imageUrl}
-                            fallbackSrc={tmpImg0}
                             alt="Profile picture"
                             isBlurred
+                            isZoomed
                         />
                     </Skeleton>
                     {id === user.Id && (

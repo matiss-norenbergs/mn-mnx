@@ -8,6 +8,7 @@ import {
 
 import Form from "@/components/form"
 import Checkbox from "@/components/checkbox"
+import ImageUpload from "@/components/imageUpload"
 
 import { getUserProfileSettingsData, respStatus, saveUserProfileSettingsData } from "../../helpers/axios/userService"
 
@@ -103,6 +104,13 @@ const UserProfileSettings = forwardRef((_, ref) => {
                 valuePropName="checked"
             >
                 <Checkbox />
+            </Form.Field>
+            <Form.Field
+                name="profileImage"
+                initialValue=""
+                label="Image"
+            >
+                <ImageUpload layout="square" />
             </Form.Field>
         </Form>
     )

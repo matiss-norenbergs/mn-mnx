@@ -4,6 +4,7 @@ using MN_MNX.Server.Helpers;
 using MN_MNX.Server.Models;
 using MN_MNX.Server.React.User.Models;
 using MN_MNX.Server.Services;
+using System.Drawing;
 using System.Globalization;
 
 namespace MN_MNX.Server.React.User
@@ -43,7 +44,7 @@ namespace MN_MNX.Server.React.User
                             throw new Exception("Error getting user form data");
                         break;
                     case UserConstants.TYPE_USER_PROFILE_SETTINGS:
-                        result = HandleProfileSettingsRequest(operation, postParams);
+                        result = await HandleProfileSettingsRequest(operation, postParams);
                         if (result == null)
                             throw new Exception("Error getting user profile settings data");
                         break;
@@ -127,7 +128,7 @@ namespace MN_MNX.Server.React.User
         {
             try
             {
-                if (!postParams.TryGetValue("ids", out var tmpStr) || !tmpStr.TryDeserializeJsonIds(out var ids) || !_userService.DeleteUsers(ids))
+                if (!postParams.TryGetIdList("ids", out var ids) || !_userService.DeleteUsers(ids))
                     throw new Exception("Error deleting users");
 
                 return true;
@@ -175,7 +176,7 @@ namespace MN_MNX.Server.React.User
         {
             try
             {
-                if (!postParams.TryGetValue("id", out var tmpStr) || !long.TryParse(tmpStr, out var id))
+                if (!postParams.TryGetId("id", out var id))
                     throw new Exception("Error getting id param");
 
                 var formData = new UserFormJson();
@@ -210,7 +211,7 @@ namespace MN_MNX.Server.React.User
         {
             try
             {
-                if (!postParams.TryGetValue("id", out var tmpStr) || !long.TryParse(tmpStr, out var id))
+                if (!postParams.TryGetId("id", out var id))
                     throw new Exception("Error getting id param");
 
                 if (!postParams.TryGetValue("surname", out var surname) || string.IsNullOrWhiteSpace(surname))
@@ -233,7 +234,7 @@ namespace MN_MNX.Server.React.User
                 if (postParams.TryGetValue("name", out var name))
                     userData.Name = name.Trim();
 
-                if (postParams.TryGetValue("role", out tmpStr) && Enum.TryParse(tmpStr, out EUserRole role))
+                if (postParams.TryGetValue("role", out var tmpStr) && Enum.TryParse(tmpStr, out EUserRole role))
                     userData.Role = role;
 
                 if (postParams.TryGetValue("password", out tmpStr) && !string.IsNullOrWhiteSpace(tmpStr))
@@ -270,7 +271,7 @@ namespace MN_MNX.Server.React.User
 
         #region User profile settings
 
-        private object? HandleProfileSettingsRequest(string operation, Dictionary<string, string> postParams)
+        private async Task<object?> HandleProfileSettingsRequest(string operation, Dictionary<string, string> postParams)
         {
             object? result = null;
             try
@@ -283,7 +284,7 @@ namespace MN_MNX.Server.React.User
                             throw new Exception("Error getting user profile settings data");
                         break;
                     case UserConstants.OPER_USER_PROFILE_SETTINGS_SAVE:
-                        result = SaveUserProfileSettingsFormData(postParams);
+                        result = await SaveUserProfileSettingsFormData(postParams);
                         if (result == null)
                             throw new Exception("Error saving user profile settings data");
                         break;
@@ -321,21 +322,51 @@ namespace MN_MNX.Server.React.User
             }
         }
 
-        private bool? SaveUserProfileSettingsFormData(Dictionary<string, string> postParams)
+        private async Task<bool?> SaveUserProfileSettingsFormData(Dictionary<string, string> postParams)
         {
             try
             {
                 var settings = _userService.GetUserProfileSettings(_user.Id);
                 var hiddenDetails = (EUserProfileDetails)settings.HiddenProfileDetails;
 
-                if (postParams.TryGetValue("showFullName", out var tmpStr) && bool.TryParse(tmpStr, out var tmpBool))
+                if (postParams.TryGetBool("showFullName", out var tmpBool))
                     HandleDetail(ref hiddenDetails, EUserProfileDetails.FullName, tmpBool);
 
-                if (postParams.TryGetValue("showEmail", out tmpStr) && bool.TryParse(tmpStr, out tmpBool))
+                if (postParams.TryGetBool("showEmail", out tmpBool))
                     HandleDetail(ref hiddenDetails, EUserProfileDetails.Email, tmpBool);
 
-                if (postParams.TryGetValue("showBirthday", out tmpStr) && bool.TryParse(tmpStr, out tmpBool))
+                if (postParams.TryGetBool("showBirthday", out tmpBool))
                     HandleDetail(ref hiddenDetails, EUserProfileDetails.Birthday, tmpBool);
+
+                var imageName = string.Empty;
+
+                var profilePicture = Request.Form.Files.FirstOrDefault();
+                if (profilePicture != null)
+                {
+                    //var fileExtension = Path.GetExtension(profilePicture.FileName);
+
+                    imageName = $"ProfileImage_{_user.Id}.jpg";
+
+                    var imagePath = $"{Environment.CurrentDirectory}/Assets/Public/Images/User_{_user.Id}";
+                    var imageFullPath = $"{imagePath}/{imageName}";
+
+                    Directory.CreateDirectory(imagePath);
+
+                    using (Image img = Image.FromStream(profilePicture.OpenReadStream(), true, true))
+                    {
+                        var width = 200;
+                        var height = 200;
+
+                        var newImage = new Bitmap(width, height);
+
+                        using (var g = Graphics.FromImage(newImage))
+                            g.DrawImage(img, 0, 0, width, height);
+
+                        newImage.Save(imageFullPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    }
+
+                    settings.ImageUrl = imageName;
+                }
 
                 settings.HiddenProfileDetails = (int)hiddenDetails;
 
@@ -400,7 +431,7 @@ namespace MN_MNX.Server.React.User
         {
             try
             {
-                if (!postParams.TryGetValue("id", out var tmpStr) || !long.TryParse(tmpStr, out var id) || id <= 0)
+                if (!postParams.TryGetId("id", out var id) || id <= 0)
                     throw new Exception("Error getting id param");
 
                 var userData = _userService.GetUserData(id);
@@ -409,10 +440,14 @@ namespace MN_MNX.Server.React.User
 
                 var userProfileSettings = _userService.GetUserProfileSettings(id);
 
+                var imagePath = string.Empty;
+                if (!string.IsNullOrWhiteSpace(userProfileSettings.ImageUrl))
+                    imagePath = Helper.GetImageUrl($"User_{id}/{userProfileSettings.ImageUrl}");
+
                 var result = new UserProfileJson
                 {
                     NameSurname = userData.GetUserFullName(),
-                    ImageUrl = "https://scontent.frix5-1.fna.fbcdn.net/v/t1.30497-1/453178253_471506465671661_2781666950760530985_n.png?stp=dst-png_p200x200&_nc_cat=1&ccb=1-7&_nc_sid=136b72&_nc_ohc=Cz0lTg2_DCEQ7kNvgGPVkxn&_nc_ht=scontent.frix5-1.fna&oh=00_AYCbiCznCbZMFGorh34FgEDP_lsqkPDQ8Iw6J0afz-yFCA&oe=66E0417A",
+                    ImageUrl = imagePath,
                     Details = UserHelper.GetUserDetails(userData, userProfileSettings, _user)
                 };
 

@@ -43,19 +43,11 @@ export default defineConfig({
     },
     server: {
         proxy: {
-            '^/api/Authentication': {
-                target,
-                secure: false
-            },
             '^/api/Generic': {
                 target,
                 secure: false
             },
             '^/log': {
-                target,
-                secure: false
-            },
-            '^/MyImages': {
                 target,
                 secure: false
             },
@@ -65,6 +57,10 @@ export default defineConfig({
                 secure: false
             },
             '^/api/post': {
+                target,
+                secure: false
+            },
+            '^/api/public': {
                 target,
                 secure: false
             },

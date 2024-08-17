@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using DBreeze.Utils;
+using System.Text.Json;
 
 namespace MN_MNX.Server
 {
@@ -110,25 +111,73 @@ namespace MN_MNX.Server
             }
         }
 
-        public async static Task<Dictionary<string, string>> GetPostParams(this HttpRequest request)
+        public static bool TryGetIdList(this Dictionary<string, string> pP, string propName, out HashSet<long> idList, bool isRequired = false)
         {
-            var postParams = new Dictionary<string, string>();
+            idList = new HashSet<long>();
             try
             {
-                using StreamReader reader = new(request.Body, leaveOpen: false);
-                var bodyAsString = await reader.ReadToEndAsync();
+                if (!pP.TryGetValue(propName, out var idListString) || !idListString.TryDeserializeJson<List<string>>(out var stringIds) || stringIds == null)
+                    return false;
 
-                if (!string.IsNullOrEmpty(bodyAsString) && bodyAsString.TryDeserializeJson(out Dictionary<string, object> parameters) && parameters != null)
+                foreach (var stringId in stringIds)
                 {
-                    foreach (var item in parameters)
-                        postParams[item.Key] = item.Value.ToString() ?? string.Empty;
+                    if (!long.TryParse(stringId, out var id))
+                        throw new Exception("Error parsing string id");
+
+                    idList.Add(id);
                 }
+
+                if (isRequired && idList.Count <= 0)
+                    return false;
+
+                return true;
             }
             catch (Exception ex)
             {
                 ex.LogException();
+                return false;
             }
-            return postParams;
+        }
+
+        public static bool TryGetId(this Dictionary<string, string> pP, string propName, out long id)
+        {
+            id = default;
+
+            return pP.TryGetValue(propName, out var tmpStr) && long.TryParse(tmpStr, out id);
+        }
+
+        public static bool TryGetBool(this Dictionary<string, string> pP, string propName, out bool boolVal)
+        {
+            boolVal = default;
+
+            return pP.TryGetValue(propName, out var tmpStr) && bool.TryParse(tmpStr, out boolVal);
+        }
+
+        public static bool TryGetString(this Dictionary<string, string> pP, string propName, out string stringVal)
+        {
+            if (pP.TryGetValue(propName, out stringVal) && !string.IsNullOrWhiteSpace(stringVal))
+            {
+                stringVal = stringVal.Trim();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        //private static bool TryGetEnum<TEnum>(this Dictionary<string, string> pP, string propName, out TEnum enumValue) where TEnum : Enum
+        //{
+        //    enumValue = default(TEnum);
+
+        //    return pP.TryGetValue(propName, out var tmpStr) && Enum.TryParse(tmpStr, out enumValue);
+        //}
+
+        internal static string GetImageUrl(string imageName)
+        {
+            var escapedImageName = Uri.EscapeDataString(imageName);
+
+            return $"/api/public/image?ticks={DateTime.UtcNow.Ticks}&image={escapedImageName}";
         }
     }
 }

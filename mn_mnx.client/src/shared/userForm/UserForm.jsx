@@ -1,7 +1,6 @@
 import PropTypes from "prop-types"
 import { useNavigate } from "react-router-dom"
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from "react"
-import { useDispatch } from "react-redux"
 
 import Form from "@/components/form"
 import Input from "@/components/input"
@@ -13,8 +12,7 @@ import TimeZoneSelect from "../timeZoneSelect"
 import { parseDate } from "@internationalized/date"
 
 import { getUserFormData, saveUserFormData, respStatus } from "@/helpers/axios/userService"
-import { loginUser } from "@/helpers/axios/authService"
-import { setUser } from "@/redux/features/user/userSlice"
+import { loginUser } from "@/helpers/axios/publicService"
 
 //import styles from "./UserForm.module.css"
 
@@ -52,8 +50,7 @@ const UserForm = forwardRef(({
     formState
 }, ref) => {
     const [form] = Form.useForm()
-    
-    const dispatch = useDispatch()
+
     const navigate = useNavigate()
 
     const axiosSignal = useRef(null)
@@ -147,7 +144,6 @@ const UserForm = forwardRef(({
                     loginUser(postParams, axiosSignal.current?.signal)
                         .then(response => {
                             if (!!response && response.status === respStatus.success) {
-                                dispatch(setUser(response.data))
                                 navigate(0)
                                 return resolve()
                             }
@@ -160,7 +156,7 @@ const UserForm = forwardRef(({
                     return reject()
                 })
         })
-    }, [form, dispatch, navigate])
+    }, [form, navigate])
 
     useImperativeHandle(ref, () => ({
         save: handleUserSave,

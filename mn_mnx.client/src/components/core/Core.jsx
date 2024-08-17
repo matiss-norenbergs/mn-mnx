@@ -1,6 +1,16 @@
 import PropTypes from "prop-types"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
+
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState
+} from "react"
+import {
+    useDispatch,
+    useSelector
+} from "react-redux"
 import {
     Routes,
     Route
@@ -15,7 +25,7 @@ import { CircularProgress } from "@nextui-org/react"
 import Header from "../header"
 import Admin from "./components/admin"
 
-import { updateUserData } from "@/helpers/axios/authService"
+import { getUser, respStatus } from "../../helpers/axios/publicService"
 import { setUser } from "@/redux/features/user/userSlice"
 
 import styles from "./Core.module.css"
@@ -33,6 +43,8 @@ const Core = ({
     routes = [],
     headerProps
 }) => {
+    const axiosSignal = useRef(null)
+
     const [isDataLoading, setIsDataLoading] = useState(true)
     const user = useSelector((state) => state.user)
     const dispatch = useDispatch()
@@ -59,19 +71,30 @@ const Core = ({
     }, [routes, user])
 
     const handleGetUser = useCallback(() => {
-        updateUserData()
+        getUser(axiosSignal.current?.signal)
             .then(response => {
-                if (response.status === 200) {
+                if (response?.status === respStatus.success)
                     dispatch(setUser(response.data))
-                }
-            })
-            .catch(error => {
-                console.log(error)
             })
             .finally(() => {
                 setIsDataLoading(false)
             })
     }, [dispatch])
+
+    useEffect(() => {
+        axiosSignal.current = new AbortController()
+
+        handleGetUser()
+
+        return () => {
+            axiosSignal.current?.abort()
+        }
+    }, [handleGetUser])
+
+    useEffect(() => {
+        if (appTitle)
+            document.title = appTitle
+    }, [appTitle])
 
     const handleRoutes = useMemo(() => {
         const adminRoutes = []
@@ -130,15 +153,6 @@ const Core = ({
             </Route>
         ]
     }, [routes])
-
-    useEffect(() => {
-        if (appTitle)
-            document.title = appTitle
-    }, [appTitle])
-
-    useEffect(() => {
-        handleGetUser()
-    }, [handleGetUser])
 
     return (
         <div className={styles["core-wrapper"]}>

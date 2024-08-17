@@ -1,15 +1,17 @@
 const apiUrl = "/api/"
 
 const objects = {
-    user: "UserData",
-    auth: "Authentication",
     generic: "Generic",
-    post: "PostData"
 }
 
 const reactObject = {
+    public: "public",
     user: "user",
     post: "post"
+}
+
+const publicTypes = {
+    user: "user"
 }
 
 const userTypes = {
@@ -29,6 +31,7 @@ export {
     objects,
     reactObject,
 
+    publicTypes,
     userTypes,
     postTypes
 }

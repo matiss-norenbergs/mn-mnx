@@ -3,7 +3,11 @@ import classNames from "classnames"
 
 import { useNavigate } from "react-router-dom"
 import { useSelector } from "react-redux"
-import { useCallback, useRef } from "react"
+import {
+    useCallback,
+    useEffect,
+    useRef
+} from "react"
 
 import {
     Navbar,
@@ -23,7 +27,7 @@ import ModalComponent from "../modalComponent"
 
 import UserForm from "@/shared/userForm"
 
-import { logoutUser } from "@/helpers/axios/authService"
+import { logoutUser, respStatus } from "@/helpers/axios/publicService"
 
 import styles from "./Header.module.css"
 
@@ -42,24 +46,31 @@ const Header = ({
     showLogo = true,
     showRouteIcons = false
 }) => {
+    const axiosSignal = useRef(null)
+    const userLoginFormRef = useRef(null)
+
     const user = useSelector((state) => state.user)
     const navigate = useNavigate()
-
-    const userLoginFormRef = useRef(null)
 
     const handleLogin = useCallback(() => {
         userLoginFormRef.current?.open()
     }, [])
 
     const handleLogout = useCallback(() => {
-        logoutUser()
+        logoutUser(axiosSignal.current?.signal)
             .then(response => {
-                if (response.status === 200) {
-                    //dispatch(removeUser())
+                if (response.status === respStatus.success)
                     navigate(0)
-                }
             })
     }, [navigate])
+
+    useEffect(() => {
+        axiosSignal.current = new AbortController()
+
+        return () => {
+            axiosSignal.current?.abort()
+        }
+    }, [])
 
     return (
         <Navbar
@@ -100,13 +111,13 @@ const Header = ({
                     <Dropdown placement="bottom-end">
                         <DropdownTrigger>
                             <Avatar
+                                className="transition-transform"
+                                color="secondary"
                                 isBordered
                                 as="button"
-                                className="transition-transform text-default"
-                                color="secondary"
+                                size="md"
                                 name={`${user.Name} ${user.Surname}`}
-                                size="sm"
-                                src=""
+                                src={user?.ProfileImage}
                             />
                         </DropdownTrigger>
                         <DropdownMenu
