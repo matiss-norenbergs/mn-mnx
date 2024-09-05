@@ -12,6 +12,8 @@ import {
     CardFooter
 } from "@nextui-org/react"
 
+import Layout from "@/components/layout"
+
 import { getPostListPublicData, respStatus } from "../../helpers/axios/postService"
 
 import styles from "./Home.module.css"
@@ -49,34 +51,36 @@ const Home = () => {
     }, [getPosts])
 
     return (
-        <div className="p-6 flex flex-col gap-2">
-            {data.map(({
-                id,
-                title,
-                content,
-                createdAt,
-                createdBy
-            }) => (
-                <Card
-                    key={id}
-                    className="w-full flex bg-slate-200"
-                >
-                    <CardHeader>
-                        <p className="text-md font-bold">
-                            {title}
-                        </p>
-                    </CardHeader>
-                    <CardBody className={styles["content"]}>
-                        {content}
-                    </CardBody>
-                    <CardFooter className="flex justify-end">
-                        <p>
-                            {`${createdBy} | ${createdAt}`}
-                        </p>
-                    </CardFooter>
-                </Card>
-            ))}
-        </div>
+        <Layout type="slim">
+            <div className="flex flex-col gap-2">
+                {data.map(({
+                    id,
+                    title,
+                    content,
+                    createdAt,
+                    createdBy
+                }) => (
+                    <Card
+                        key={id}
+                        className="w-full flex bg-slate-200"
+                    >
+                        <CardHeader>
+                            <p className="text-md font-bold">
+                                {title}
+                            </p>
+                        </CardHeader>
+                        <CardBody className={styles["content"]}>
+                            {content}
+                        </CardBody>
+                        <CardFooter className="flex justify-end">
+                            <p>
+                                {`${createdBy} | ${createdAt}`}
+                            </p>
+                        </CardFooter>
+                    </Card>
+                ))}
+            </div>
+        </Layout>
     )
 }
 

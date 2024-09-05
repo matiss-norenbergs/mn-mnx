@@ -61,7 +61,7 @@ const Profile = () => {
 
     return (
         <Layout
-            layoutType="slim"
+            type="slim"
             breadcrumbItems={[{
                 label: <FaIcon icon="home" fixedWidth />,
                 href: "/"

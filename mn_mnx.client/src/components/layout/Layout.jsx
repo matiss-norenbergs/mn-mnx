@@ -16,7 +16,7 @@ const layoutTypes = {
 
 const propTypes = {
     children: PropTypes.node,
-    layoutType: PropTypes.oneOf(Object.keys(layoutTypes)),
+    type: PropTypes.oneOf(Object.keys(layoutTypes)),
     breadcrumbItems: PropTypes.arrayOf(PropTypes.shape({
         href: PropTypes.string,
         label: PropTypes.node
@@ -25,7 +25,7 @@ const propTypes = {
 
 const Layout = ({
     children,
-    layoutType = "basic",
+    type = "basic",
     breadcrumbItems = []
 }) => {
     return (
@@ -47,7 +47,7 @@ const Layout = ({
                     ))}
                 </Breadcrumbs>
             )}
-            <div className={styles[layoutTypes[layoutType]]}>
+            <div className={styles[layoutTypes[type]]}>
                 {children}
             </div>
         </div>
